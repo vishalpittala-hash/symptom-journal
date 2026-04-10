@@ -24,7 +24,7 @@ function parseMarkdown(text: string): string {
     .replace(/^# (.*$)/gm, "<h1>$1</h1>")
     .replace(/^\* (.*$)/gm, "<li>$1</li>")
     .replace(/^- (.*$)/gm, "<li>$1</li>")
-    .replace(/(<li>.*<\/li>)/gs, "<ul>$1</ul>")
+    .replace(/(<li>.*<\/li>)/g, "<ul>$1</ul>")
     .replace(/\n\n/g, "</p><p>")
     .replace(/^(?!<[hul])(.*)/gm, (line) =>
       line.trim() ? `<p>${line}</p>` : ""
