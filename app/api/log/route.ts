@@ -4,9 +4,10 @@ import { createClient } from "@supabase/supabase-js"
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { symptom, mood, notes, bodyPart, timestamp } = body
+    const { symptom, mood } = body
 
     const validMoods: string[] = ["Mild", "Moderate", "Severe"]
+
     if (!symptom || !mood || !validMoods.includes(mood)) {
       return NextResponse.json(
         { error: "symptom and mood are required" },
@@ -23,9 +24,7 @@ export async function POST(req: Request) {
       {
         symptom,
         mood,
-        notes:      notes     || null,
-        body_Part:  bodyPart  || null,
-        timestamp:  timestamp || new Date().toISOString(),
+        user_email: "test@gmail.com", // ✅ REQUIRED
       },
     ])
 
