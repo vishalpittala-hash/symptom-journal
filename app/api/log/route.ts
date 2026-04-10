@@ -22,8 +22,7 @@ export async function POST(req: Request) {
         {
           symptom,
           mood,
-          text: notes || null,
-          timestamp: timestamp || new Date().toISOString(),
+          user_email: "test@gmail.com", // ✅ REQUIRED FIX
         },
       ])
       
