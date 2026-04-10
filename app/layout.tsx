@@ -17,6 +17,8 @@ export default function RootLayout({
         padding: 0,
         background: "#060d1f",
         minHeight: "100vh",
+        WebkitFontSmoothing: "antialiased",
+        MozOsxFontSmoothing: "grayscale",
       }}>
         {children}
       </body>

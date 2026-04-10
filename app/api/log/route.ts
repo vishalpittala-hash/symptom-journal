@@ -4,24 +4,33 @@ import { createClient } from "@supabase/supabase-js"
 export async function POST(req: Request) {
   const body = await req.json()
 
+  const { symptom, mood, notes, bodyPart, timestamp } = body
+
+  // Basic validation
+  if (!symptom || !mood) {
+    return NextResponse.json(
+      { error: "symptom and mood are required" },
+      { status: 400 }
+    )
+  }
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const { data, error } = await supabase.from("symptoms").insert([
+  const { error } = await supabase.from("symptoms").insert([
     {
-      user_email: "test@gmail.com",
-      symptom: body.symptom,
-      mood: body.mood,
+      symptom:    symptom,
+      mood:       mood,
+      notes:      notes      || null,
+      body_part:  bodyPart   || null,
+      timestamp:  timestamp  || new Date().toISOString(),
     },
   ])
 
-  console.log("DATA:", data)
-  console.log("ERROR:", error)
-
   if (error) {
-    return NextResponse.json({ error: error.message })
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
   return NextResponse.json({ success: true })
