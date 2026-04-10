@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       symptom:    symptom,
       mood:       mood,
       notes:      notes      || null,
-      body_part:  bodyPart   || null,
+      body_Part:  bodyPart   || null,
       timestamp:  timestamp  || new Date().toISOString(),
     },
   ])
