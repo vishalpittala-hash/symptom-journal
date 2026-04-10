@@ -91,9 +91,12 @@ export default function Home() {
     try {
       const res = await fetch("/api/history")
       const result = await res.json()
-      if (Array.isArray(result)) setData(result)
-    } catch {
-      showToast("Could not load history.", "error")
+  
+      if (Array.isArray(result)) {
+        setData(result)
+      }
+    } catch (err) {
+      console.error(err)
     }
   }
 
@@ -111,22 +114,36 @@ export default function Home() {
     if (!symptom.trim()) { showToast("Please enter a symptom.", "error"); return }
     if (!severity)       { showToast("Please select a severity.", "error"); return }
 
-    await fetch("/api/log", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        symptom:   symptom.trim(),
-        mood:      severity,
-        notes,
-        bodyPart,
-        timestamp: new Date().toISOString(),
-      }),
-    })
+    const res = await fetch("/api/log", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    symptom: symptom.trim(),
+    mood: severity,
+    notes,
+    bodyPart,
+    timestamp: new Date().toISOString(),
+  }),
+})
 
-    setSymptom(""); setSeverity(""); setNotes(""); setBodyPart("")
-    showToast("Entry saved ✓")
-    fetchData()
-  }
+const result = await res.json()
+
+if (!res.ok) {
+  throw new Error(result.error || "Save failed")
+}
+
+// ✅ Clear form AFTER success
+setSymptom("")
+setSeverity("")
+setNotes("")
+setBodyPart("")
+
+// ✅ Refresh AFTER DB save
+await fetchData()
+
+showToast("Entry saved ✓")
 
   // ── Delete entry by Supabase id ──
   const handleDelete = async (id: string) => {
