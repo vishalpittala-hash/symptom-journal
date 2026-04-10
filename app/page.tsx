@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts"
-
+import InsightsDashboard from "../components/InsightsDashboard"
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Entry = {
   id: string
@@ -71,7 +71,8 @@ export default function Home() {
   const [data,     setData]     = useState<Entry[]>([])
   const [analysis, setAnalysis] = useState("")
   const [loading,  setLoading]  = useState(false)
-  const [tab,      setTab]      = useState<"log" | "history" | "analysis">("log")
+  const [saving,   setSaving]   = useState(false)
+  const [tab, setTab] = useState<"log" | "history" | "analysis" | "insights">("log")
   const [toast,    setToast]    = useState<Toast | null>(null)
 
   // ── Fetch history ──
@@ -108,9 +109,10 @@ export default function Home() {
   const handleSaveName = () => {
     if (!nameInput.trim()) return
     const n = nameInput.trim()
-    setName(n)
+    const capitalized = n.charAt(0).toUpperCase() + n.slice(1)
+    setName(capitalized)
     setNameSet(true)
-    localStorage.setItem("sj_name", n)
+    localStorage.setItem("sj_name", capitalized)
   }
 
   // ── Save entry ──
@@ -118,6 +120,7 @@ export default function Home() {
     if (!symptom.trim()) { showToast("Please enter a symptom.", "error"); return }
     if (!severity)       { showToast("Please select a severity.", "error"); return }
 
+    setSaving(true)
     try {
       const res = await fetch("/api/log", {
         method: "POST",
@@ -132,8 +135,7 @@ export default function Home() {
       })
 
       const result = await res.json()
-      console.log("SAVE RESULT:", result)   // 👈 ADD THIS
-      
+
       if (!res.ok) {
         throw new Error(result.error || "Save failed")
       }
@@ -149,6 +151,7 @@ export default function Home() {
       console.error(err)
       showToast("Failed to save entry.", "error")
     }
+    setSaving(false)
   }
 
   // ── Delete entry ──
@@ -262,7 +265,7 @@ export default function Home() {
 
         {/* Tabs */}
         <div className="tabs">
-          {(["log", "history", "analysis"] as const).map((t) => (
+          {(["log", "history", "analysis","insights"] as const).map((t) => (
             <div
               key={t}
               className={`tab ${tab === t ? "active" : ""}`}
@@ -339,8 +342,13 @@ export default function Home() {
               style={{ resize: "vertical" }}
             />
 
-            <button className="btn-primary" onClick={handleSave} style={{ marginTop: 20 }}>
-              Save Entry
+            <button
+              className="btn-primary"
+              onClick={handleSave}
+              disabled={saving}
+              style={{ marginTop: 20, opacity: saving ? 0.6 : 1 }}
+            >
+              {saving ? "Saving…" : "Save Entry"}
             </button>
           </div>
         )}
@@ -481,6 +489,7 @@ export default function Home() {
             )}
           </div>
         )}
+        {tab === "insights" && <InsightsDashboard />}
 
         {/* Footer */}
         <p style={{ textAlign: "center", color: "#334155", fontSize: 13, marginTop: 40 }}>

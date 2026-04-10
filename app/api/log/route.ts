@@ -4,9 +4,10 @@ import { createClient } from "@supabase/supabase-js"
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { symptom, mood, notes, timestamp } = body
+    const { symptom, mood, notes, bodyPart, timestamp } = body
 
-    if (!symptom || !mood) {
+    const validMoods: string[] = ["Mild", "Moderate", "Severe"]
+    if (!symptom || !mood || !validMoods.includes(mood)) {
       return NextResponse.json(
         { error: "symptom and mood are required" },
         { status: 400 }
@@ -19,21 +20,22 @@ export async function POST(req: Request) {
     )
 
     const { error } = await supabase.from("symptoms").insert([
-        {
-          symptom,
-          mood,
-          user_email: "test@gmail.com", // ✅ REQUIRED FIX
-        },
-      ])
-      
-      console.log("SUPABASE ERROR:", error)  // 👈 ADD THIS
-      
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 })
-      }
+      {
+        symptom,
+        mood,
+        notes:      notes     || null,
+        body_Part:  bodyPart  || null,
+        timestamp:  timestamp || new Date().toISOString(),
+      },
+    ])
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
 
     return NextResponse.json({ success: true })
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error"
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
