@@ -24,9 +24,14 @@ function parseMarkdown(text: string): string {
     .replace(/^### (.*$)/gm, "<h3>$1</h3>")
     .replace(/^## (.*$)/gm, "<h2>$1</h2>")
     .replace(/^# (.*$)/gm, "<h1>$1</h1>")
-    .replace(/^\* (.*$)/gm, "<li>$1</li>")
-    .replace(/^- (.*$)/gm, "<li>$1</li>")
-    .replace(/(<li>.*<\/li>)/g, "<ul>$1</ul>")
+    .replace(/(?:^\* .*$\n?|^- .*$\n?)+/gm, (block) => {
+      const items = block
+        .split("\n")
+        .filter((l) => l.trim())
+        .map((l) => `<li>${l.replace(/^[*-] /, "")}</li>`)
+        .join("")
+      return `<ul>${items}</ul>`
+    })
     .replace(/\n\n/g, "</p><p>")
     .replace(/^(?!<[hul])(.*)/gm, (line) =>
       line.trim() ? `<p>${line}</p>` : ""
@@ -69,6 +74,19 @@ export default function Home() {
   const [tab,      setTab]      = useState<"log" | "history" | "analysis">("log")
   const [toast,    setToast]    = useState<Toast | null>(null)
 
+  // ── Fetch history ──
+  const fetchData = async () => {
+    try {
+      const res = await fetch("/api/history")
+      const result = await res.json()
+      if (Array.isArray(result)) {
+        setData(result)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   // ── On mount: load name + history ──
   useEffect(() => {
     const saved = localStorage.getItem("sj_name")
@@ -86,20 +104,6 @@ export default function Home() {
   const showToast = (message: string, type: Toast["type"] = "success") =>
     setToast({ message, type })
 
-  // ── Fetch history ──
-  const fetchData = async () => {
-    try {
-      const res = await fetch("/api/history")
-      const result = await res.json()
-  
-      if (Array.isArray(result)) {
-        setData(result)
-      }
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
   // ── Save name ──
   const handleSaveName = () => {
     if (!nameInput.trim()) return
@@ -114,38 +118,39 @@ export default function Home() {
     if (!symptom.trim()) { showToast("Please enter a symptom.", "error"); return }
     if (!severity)       { showToast("Please select a severity.", "error"); return }
 
-    const res = await fetch("/api/log", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    symptom: symptom.trim(),
-    mood: severity,
-    notes,
-    bodyPart,
-    timestamp: new Date().toISOString(),
-  }),
-})
+    try {
+      const res = await fetch("/api/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symptom: symptom.trim(),
+          mood: severity,
+          notes,
+          bodyPart,
+          timestamp: new Date().toISOString(),
+        }),
+      })
 
-const result = await res.json()
+      const result = await res.json()
 
-if (!res.ok) {
-  throw new Error(result.error || "Save failed")
-}
+      if (!res.ok) {
+        throw new Error(result.error || "Save failed")
+      }
 
-// ✅ Clear form AFTER success
-setSymptom("")
-setSeverity("")
-setNotes("")
-setBodyPart("")
+      setSymptom("")
+      setSeverity("")
+      setNotes("")
+      setBodyPart("")
 
-// ✅ Refresh AFTER DB save
-await fetchData()
+      await fetchData()
+      showToast("Entry saved ✓")
+    } catch (err) {
+      console.error(err)
+      showToast("Failed to save entry.", "error")
+    }
+  }
 
-showToast("Entry saved ✓")
-
-  // ── Delete entry by Supabase id ──
+  // ── Delete entry ──
   const handleDelete = async (id: string) => {
     try {
       await fetch("/api/history", {
@@ -204,7 +209,7 @@ showToast("Entry saved ✓")
           <h1 className="title">🧠 Symptom Journal</h1>
           <p className="subtitle">Track symptoms. Get AI insights.</p>
           <div className="card" style={{ marginTop: 40, textAlign: "center" }}>
-            <h2 style={{ marginBottom: 6 }}>Welcome! What's your name?</h2>
+            <h2 style={{ marginBottom: 6 }}>Welcome! What&apos;s your name?</h2>
             <p style={{ color: "#94a3b8", marginBottom: 20, fontSize: 15 }}>
               Stored only on your device.
             </p>
@@ -424,7 +429,7 @@ showToast("Entry saved ✓")
                         </div>
 
                         <button
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() => item.id && handleDelete(item.id)}
                           style={{
                             background: "none", border: "none", color: "#475569",
                             cursor: "pointer", fontSize: 20, padding: "0 0 0 12px",
