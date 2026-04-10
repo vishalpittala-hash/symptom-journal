@@ -19,17 +19,19 @@ export async function POST(req: Request) {
     )
 
     const { error } = await supabase.from("symptoms").insert([
-      {
-        symptom,
-        mood,
-        text: notes || null, // ✅ FIXED
-        timestamp: timestamp || new Date().toISOString(),
-      },
-    ])
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
+        {
+          symptom,
+          mood,
+          text: notes || null,
+          timestamp: timestamp || new Date().toISOString(),
+        },
+      ])
+      
+      console.log("SUPABASE ERROR:", error)  // 👈 ADD THIS
+      
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
 
     return NextResponse.json({ success: true })
   } catch (err: any) {

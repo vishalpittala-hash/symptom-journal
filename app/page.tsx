@@ -132,7 +132,8 @@ export default function Home() {
       })
 
       const result = await res.json()
-
+      console.log("SAVE RESULT:", result)   // 👈 ADD THIS
+      
       if (!res.ok) {
         throw new Error(result.error || "Save failed")
       }
