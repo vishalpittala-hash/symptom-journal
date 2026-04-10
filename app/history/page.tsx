@@ -6,7 +6,7 @@ export default function History() {
   const [data, setData] = useState<any[]>([])
 
   useEffect(() => {
-    fetch("/api/analyze")
+    fetch("/api/history")
       .then(res => res.json())
       .then(setData)
   }, [])

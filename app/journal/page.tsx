@@ -7,15 +7,36 @@ export default function Journal() {
   const [mood, setMood] = useState("")
 
   const handleSubmit = async () => {
-    await fetch("/api/log", {
-      method: "POST",
-      body: JSON.stringify({ symptom, mood }),
-    })
+    try {
+      const res = await fetch("/api/log", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json", // ✅ REQUIRED
+        },
+        body: JSON.stringify({
+          symptom,
+          mood,
+          notes: "", // ✅ default
+          bodyPart: "", // ✅ default
+          timestamp: new Date().toISOString(), // ✅ important
+        }),
+      })
 
-    alert("Saved!")
+      const result = await res.json()
+      console.log("SAVE RESPONSE:", result)
 
-    setSymptom("")
-    setMood("")
+      if (!res.ok) {
+        throw new Error(result.error || "Save failed")
+      }
+
+      alert("Saved!")
+
+      setSymptom("")
+      setMood("")
+    } catch (err) {
+      console.error(err)
+      alert("Failed to save entry")
+    }
   }
 
   return (

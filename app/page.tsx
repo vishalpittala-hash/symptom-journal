@@ -126,7 +126,7 @@ export default function Home() {
           symptom: symptom.trim(),
           mood: severity,
           notes,
-          bodyPart,
+          bodyPart: bodyPart || null,
           timestamp: new Date().toISOString(),
         }),
       })
