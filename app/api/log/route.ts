@@ -4,13 +4,19 @@ import { createClient } from "@supabase/supabase-js"
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { symptom, mood } = body
 
-    const validMoods: string[] = ["Mild", "Moderate", "Severe"]
+    const {
+      symptom,
+      severity,
+      bodyPart,
+      notes,
+      sleepHours,
+    } = body
 
-    if (!symptom || !mood || !validMoods.includes(mood)) {
+    // Basic validation
+    if (!symptom || !severity) {
       return NextResponse.json(
-        { error: "symptom and mood are required" },
+        { error: "symptom and severity are required" },
         { status: 400 }
       )
     }
@@ -23,8 +29,11 @@ export async function POST(req: Request) {
     const { error } = await supabase.from("symptoms").insert([
       {
         symptom,
-        mood,
-        user_email: "test@gmail.com", // ✅ REQUIRED
+        severity,
+        body_part: bodyPart || null,
+        notes: notes || null,
+        sleep_hours: sleepHours || null,
+        user_email: "test@gmail.com",
       },
     ])
 
