@@ -22,7 +22,7 @@ export default function InsightsDashboard() {
     fetchInsights()
   }, [])
 
-  // 🔥 Identify main insight (priority insight)
+  // 🔥 Identify main insight
   const mainInsight = insights.find(i =>
     i.toLowerCase().includes("worse") ||
     i.toLowerCase().includes("increase") ||
@@ -33,44 +33,88 @@ export default function InsightsDashboard() {
 
   return (
     <div className="card">
-      <h2>🧠 Smart Insights</h2>
+      <h2 style={{ marginBottom: "16px" }}>🧠 Smart Insights</h2>
 
-      {/* Loading state */}
+      {/* Loading */}
       {loading && (
-        <p style={{ color: "#64748b", marginTop: "12px" }}>
-          Loading insights...
-        </p>
+        <p style={{ color: "#64748b" }}>Loading insights...</p>
       )}
 
-      {/* Empty state */}
+      {/* Empty */}
       {!loading && insights.length === 0 && (
-        <p style={{ color: "#64748b", marginTop: "12px" }}>
-          No insights yet. Add more logs to see patterns.
+        <p style={{ color: "#64748b" }}>
+          No insights yet. Add more logs.
         </p>
       )}
 
-      {/* 🔥 Highlighted main insight */}
-      {!loading && mainInsight && (
-        <div
-          style={{
-            padding: "18px",
-            marginTop: "16px",
-            marginBottom: "16px",
-            borderRadius: "14px",
-            background: "#7c2d12",
-            border: "1px solid #ea580c",
-            color: "#fff",
-            fontWeight: 600,
-            lineHeight: 1.5,
-          }}
-        >
-          ⚠️ {mainInsight}
-        </div>
-      )}
+      {/* ✅ CONTENT */}
+      {!loading && insights.length > 0 && (
+        <>
+          {/* 🔷 Top Row */}
+          <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
+            
+            {/* Total Logs */}
+            <div style={{
+              flex: 1,
+              padding: "16px",
+              borderRadius: "14px",
+              background: "#0d1829",
+              border: "1px solid #1a2540"
+            }}>
+              <p style={{ color: "#64748b", fontSize: "13px" }}>Total Logs</p>
+              <h3 style={{ fontSize: "22px" }}>
+                {insights[0]?.match(/\d+/)?.[0] || "-"}
+              </h3>
+            </div>
 
-      {/* Other insights */}
-      {!loading && otherInsights.length > 0 && (
-        <div style={{ marginTop: "10px" }}>
+            {/* Top Symptom */}
+            <div style={{
+              flex: 1,
+              padding: "16px",
+              borderRadius: "14px",
+              background: "#0d1829",
+              border: "1px solid #1a2540"
+            }}>
+              <p style={{ color: "#64748b", fontSize: "13px" }}>Top Symptom</p>
+              <h3 style={{ fontSize: "18px" }}>
+                {insights[1]?.split(":")[1] || "-"}
+              </h3>
+            </div>
+          </div>
+
+          {/* 🔥 Main Insight */}
+          {mainInsight && (
+            <div style={{
+              padding: "20px",
+              marginBottom: "16px",
+              borderRadius: "16px",
+              background: "#7c2d12",
+              border: "1px solid #ea580c",
+              color: "#fff",
+              fontWeight: 600,
+              fontSize: "16px"
+            }}>
+              ⚠️ {mainInsight}
+            </div>
+          )}
+
+          {/* 🔷 Avg Severity */}
+          <div style={{
+            padding: "16px",
+            borderRadius: "14px",
+            background: "#0d1829",
+            border: "1px solid #1a2540",
+            marginBottom: "12px"
+          }}>
+            <p style={{ color: "#64748b", fontSize: "13px" }}>
+              Average Severity
+            </p>
+            <h3 style={{ fontSize: "20px" }}>
+              {insights.find(i => i.includes("Average")) || "-"}
+            </h3>
+          </div>
+
+          {/* Other insights */}
           {otherInsights.map((insight, i) => (
             <div
               key={i}
@@ -86,7 +130,7 @@ export default function InsightsDashboard() {
               {insight}
             </div>
           ))}
-        </div>
+        </>
       )}
     </div>
   )
