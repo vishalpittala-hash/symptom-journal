@@ -88,7 +88,7 @@ const evening = logs.filter(l => {
   return h >= 18
 })
 
-if (morning.length > 2 && evening.length > 2) {
+if (morning.length > 0 && evening.length > 0) {
   const mAvg =
     morning.reduce((s, l) => s + l.severity, 0) / morning.length
 
@@ -98,6 +98,10 @@ if (morning.length > 2 && evening.length > 2) {
   if (eAvg > mAvg) {
     insights.push(
       `Evening symptoms are more severe than morning`
+    )
+  } else if (mAvg > eAvg) {
+    insights.push(
+      `Morning symptoms tend to be more severe than evening`
     )
   }
 }

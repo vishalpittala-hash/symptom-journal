@@ -31,6 +31,12 @@ export default function InsightsDashboard() {
 
   const otherInsights = insights.filter(i => i !== mainInsight)
 
+  const filteredInsights = otherInsights.filter(
+    i =>
+      !i.includes("You logged") &&
+      !i.includes("Most frequent") &&
+      !i.includes("Average")
+  )
   return (
     <div className="card">
       <h2 style={{ marginBottom: "16px" }}>🧠 Smart Insights</h2>
@@ -115,8 +121,7 @@ export default function InsightsDashboard() {
           </div>
 
           {/* Other insights */}
-          {otherInsights.map((insight, i) => (
-            <div
+          {filteredInsights.map((insight, i) => (            <div
               key={i}
               style={{
                 padding: "12px",
