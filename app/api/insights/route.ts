@@ -105,6 +105,21 @@ if (morning.length > 0 && evening.length > 0) {
     )
   }
 }
+// 🔥 Trigger detection from notes
+const noteText = logs
+  .map(l => l.notes?.toLowerCase() || "")
+  .join(" ")
 
+if (noteText.includes("alcohol")) {
+  insights.push("Symptoms often occur after alcohol consumption")
+}
+
+if (noteText.includes("gym") || noteText.includes("workout")) {
+  insights.push("Some symptoms may be related to physical activity")
+}
+
+if (noteText.includes("stress") || noteText.includes("tension")) {
+  insights.push("Stress-related patterns detected in your symptoms")
+}
   return insights
 }
