@@ -3,17 +3,14 @@ import { createClient } from "@supabase/supabase-js"
 
 export async function POST(req: Request) {
   try {
-    const body: any = await req.json()
-
-console.log("Incoming body:", body)  // 👈 ADD THIS LINE
-
-const {
-  symptom,
-  severity,
-  bodyPart,
-  notes,
-  sleepHours,
-} = body
+    const body = await req.json()
+    const {
+      symptom,
+      severity,
+      bodyPart,
+      notes,
+      sleepHours,
+    } = body
 
     // Basic validation
     if (!symptom || !severity) {

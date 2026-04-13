@@ -46,8 +46,14 @@ function generateInsights(logs: any[]) {
   if (top) insights.push(`Most frequent symptom: ${top[0]}`)
 
   // Avg severity
+  const validLogs = logs.filter(
+    l => l.severity !== null && l.severity !== undefined
+  )
+  
   const avg =
-    logs.reduce((s, l) => s + (l.severity || 0), 0) / logs.length
+    validLogs.length > 0
+      ? validLogs.reduce((s, l) => s + l.severity, 0) / validLogs.length
+      : 0
 
   insights.push(`Average severity: ${avg.toFixed(1)} / 5`)
 

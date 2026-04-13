@@ -24,18 +24,16 @@ export async function GET() {
   const cleanLogs = data.map((item: any, i: number) => ({
     index: i + 1,
     symptom: item.symptom,
-    severity: item.mood,
+    severity: item.severity,
     bodyPart: item.body_part || null, // ✅ FIX
     notes: item.notes || null,
-    date: item.timestamp
-      ? new Date(item.timestamp).toLocaleDateString("en-IN", {
-          day: "numeric", month: "short", year: "numeric",
-        })
-      : item.created_at
-      ? new Date(item.created_at).toLocaleDateString("en-IN", {
-          day: "numeric", month: "short", year: "numeric",
-        })
-      : null,
+    date: item.created_at
+    ? new Date(item.created_at).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : null,
   }))
 
   let aiResponse
