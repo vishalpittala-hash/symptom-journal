@@ -1,6 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { createClient } from "@supabase/supabase-js"
+
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts"
 import InsightsDashboard from "../components/InsightsDashboard"
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -56,6 +59,20 @@ const SEVERITY_COLORS: Record<string, string> = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function Home() {
+  const router = useRouter()
+
+useEffect(() => {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+
+  supabase.auth.getUser().then(({ data }) => {
+    if (!data.user) {
+      router.push("/login")
+    }
+  })
+}, [])
   // Onboarding
   const [name, setName]           = useState("")
   const [nameSet, setNameSet]     = useState(false)
