@@ -127,10 +127,10 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           symptom: symptom.trim(),
-          mood: severity,
+          severity: severity === "Mild" ? 1 : severity === "Moderate" ? 3 : 5,
+sleepHours: 6, // temporary (we’ll improve later)
           notes,
           bodyPart: bodyPart || null,
-          timestamp: new Date().toISOString(),
         }),
       })
 
