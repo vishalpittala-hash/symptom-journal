@@ -12,21 +12,23 @@ export default function LoginPage() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
-
   const handleLogin = async () => {
     setLoading(true)
     setMessage("")
-
+  
     const { error } = await supabase.auth.signInWithOtp({
       email,
+      options: {
+        emailRedirectTo: "http://localhost:3000/auth/callback",
+      },
     })
-
+  
     if (error) {
-      setMessage("Error sending login link")
+      setMessage(error.message || "Error sending login link")
     } else {
       setMessage("Check your email for login link 🚀")
     }
-
+  
     setLoading(false)
   }
 
