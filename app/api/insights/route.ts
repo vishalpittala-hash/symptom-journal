@@ -58,24 +58,49 @@ function generateInsights(logs: any[]) {
   insights.push(`Average severity: ${avg.toFixed(1)} / 5`)
 
   // Sleep correlation
-  const low = logs.filter(l => l.sleep_hours && l.sleep_hours < 6)
-  const normal = logs.filter(l => l.sleep_hours && l.sleep_hours >= 6)
+  // 🔥 Advanced Sleep Correlation
+const lowSleep = logs.filter(l => l.sleep_hours && l.sleep_hours < 6)
+const goodSleep = logs.filter(l => l.sleep_hours && l.sleep_hours >= 6)
 
-  if (low.length && normal.length) {
-    const lowAvg =
-      low.reduce((s, l) => s + l.severity, 0) / low.length
+if (lowSleep.length > 2 && goodSleep.length > 2) {
+  const lowAvg =
+    lowSleep.reduce((s, l) => s + l.severity, 0) / lowSleep.length
 
-    const normalAvg =
-      normal.reduce((s, l) => s + l.severity, 0) / normal.length
+  const goodAvg =
+    goodSleep.reduce((s, l) => s + l.severity, 0) / goodSleep.length
 
-    if (lowAvg > normalAvg) {
-      insights.push(
-        `Symptoms are worse on low sleep days (${lowAvg.toFixed(
-          1
-        )} vs ${normalAvg.toFixed(1)})`
-      )
-    }
+  if (lowAvg > goodAvg) {
+    const ratio = (lowAvg / goodAvg).toFixed(1)
+
+    insights.push(
+      `Symptoms are ${ratio}x more severe on low sleep days`
+    )
   }
+}
+// 🔥 Time of day correlation
+const morning = logs.filter(l => {
+  const h = new Date(l.created_at).getHours()
+  return h < 12
+})
+
+const evening = logs.filter(l => {
+  const h = new Date(l.created_at).getHours()
+  return h >= 18
+})
+
+if (morning.length > 2 && evening.length > 2) {
+  const mAvg =
+    morning.reduce((s, l) => s + l.severity, 0) / morning.length
+
+  const eAvg =
+    evening.reduce((s, l) => s + l.severity, 0) / evening.length
+
+  if (eAvg > mAvg) {
+    insights.push(
+      `Evening symptoms are more severe than morning`
+    )
+  }
+}
 
   return insights
 }
