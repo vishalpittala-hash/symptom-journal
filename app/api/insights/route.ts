@@ -121,5 +121,15 @@ if (noteText.includes("gym") || noteText.includes("workout")) {
 if (noteText.includes("stress") || noteText.includes("tension")) {
   insights.push("Stress-related patterns detected in your symptoms")
 }
+// 🔥 Smart summary insight
+const hasSleep = insights.some(i => i.includes("sleep"))
+const hasAlcohol = insights.some(i => i.includes("alcohol"))
+const hasActivity = insights.some(i => i.includes("physical"))
+
+if (hasSleep || hasAlcohol || hasActivity) {
+  insights.unshift(
+    "Your symptoms appear to be influenced by lifestyle factors like sleep, alcohol, and physical activity."
+  )
+}
   return insights
 }
