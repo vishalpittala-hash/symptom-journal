@@ -17,14 +17,19 @@ export async function POST(req: Request) {
     )
 
     const { error } = await supabase
-      .from("user_profiles")
-      .upsert({
-        user_email: userEmail,
-        age,
-        gender,
-        conditions,
-        activity_level: activityLevel,
-      })
+  .from("user_profiles")
+  .upsert(
+    {
+      user_email: userEmail,
+      age,
+      gender,
+      conditions,
+      activity_level: activityLevel,
+    },
+    {
+      onConflict: "user_email", // 🔥 IMPORTANT
+    }
+  )
 
     if (error) {
       console.error("SUPABASE ERROR:", error)
