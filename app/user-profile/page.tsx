@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { createClient } from "@supabase/supabase-js"
 
 export default function UserProfilePage() {
   const router = useRouter()
@@ -10,6 +11,21 @@ export default function UserProfilePage() {
   const [gender, setGender] = useState("")
   const [conditions, setConditions] = useState("")
   const [activityLevel, setActivityLevel] = useState("")
+  const [userEmail, setUserEmail] = useState("")
+
+  // 🔥 Get logged-in user email
+  useEffect(() => {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user?.email) {
+        setUserEmail(data.user.email)
+      }
+    })
+  }, [])
 
   const handleSave = async () => {
     console.log("Saving profile...")
@@ -24,12 +40,17 @@ export default function UserProfilePage() {
         gender,
         conditions,
         activityLevel,
+        userEmail, // ✅ now defined
       }),
     })
 
     console.log("STATUS:", res.status)
 
-    router.push("/")
+    if (res.ok) {
+      router.push("/")
+    } else {
+      alert("Failed to save profile")
+    }
   }
 
   return (
