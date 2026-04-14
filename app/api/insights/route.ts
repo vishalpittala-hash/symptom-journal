@@ -20,6 +20,24 @@ export async function GET() {
     }
 
     const insights = generateInsights(logs || [])
+    // 🔥 Predictive alert
+const recent = logs.slice(-5)
+
+if (recent.length >= 3) {
+  const avgRecent =
+    recent.reduce((sum, l) => sum + l.severity, 0) /
+    recent.length
+
+  if (avgRecent >= 4) {
+    insights.unshift(
+      "⚠️ High severity trend detected recently — symptoms may continue if patterns persist"
+    )
+  } else if (avgRecent >= 3) {
+    insights.unshift(
+      "⚠️ Moderate symptom trend — monitor closely over next few days"
+    )
+  }
+}
 
     return NextResponse.json({ insights })
   } catch (err: unknown) {
