@@ -12,6 +12,7 @@ export default function ProfilePage() {
   const [activityLevel, setActivityLevel] = useState("")
 
   const handleSave = async () => {
+    console.log("Saving profile clicked")
     await fetch("/api/profile", {
       method: "POST",
       headers: {
