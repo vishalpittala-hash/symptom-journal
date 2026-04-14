@@ -1,122 +1,126 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { cookies } from "next/headers"
+import { createServerClient } from "@supabase/ssr"
 
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url)
-    const email = searchParams.get("email")
+    // ✅ Authenticated Supabase client
+    const cookieStore = await cookies()
 
-    if (!email) {
-      return NextResponse.json({ error: "Missing email" }, { status: 400 })
-    }
-
-    const supabase = createClient(
+    const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+        },
+      }
     )
 
-    // ✅ 1. Fetch symptoms ONLY for this user
-    const { data, error } = await supabase
-      .from("symptoms")
-      .select("*")
-      .eq("user_email", email)
-      .order("created_at", { ascending: true })
+    // ✅ Get logged-in user
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (!user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
     }
 
-    if (!data || data.length === 0) {
+    // ✅ Call your own insights API (same domain, no env needed)
+    const baseUrl = new URL(req.url).origin
+
+    const insightsRes = await fetch(`${baseUrl}/api/insights`, {
+      headers: {
+        cookie: req.headers.get("cookie") || "", // 🔥 important for auth
+      },
+    })
+
+    if (!insightsRes.ok) {
+      return NextResponse.json(
+        { error: "Failed to fetch insights" },
+        { status: 500 }
+      )
+    }
+
+    const insightsData = await insightsRes.json()
+    const insights: string[] = insightsData.insights || []
+
+    if (!insights.length) {
       return NextResponse.json({
-        analysis: "No symptoms logged yet. Start by adding some entries.",
+        analysis: "No insights available yet. Add more logs.",
       })
     }
 
-    // ✅ 2. Fetch user profile
-    const { data: profile } = await supabase
-      .from("user_profiles")
-      .select("*")
-      .eq("user_email", email)
-      .single()
-
-    // ✅ 3. Clean logs
-    const cleanLogs = data.map((item: any, i: number) => ({
-      index: i + 1,
-      symptom: item.symptom,
-      severity: item.severity,
-      bodyPart: item.body_part || null,
-      notes: item.notes || null,
-      date: item.created_at
-        ? new Date(item.created_at).toLocaleDateString("en-IN", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-          })
-        : null,
-    }))
-
-    // ✅ 4. Build personalized prompt
-    const prompt = `
-User Profile:
-- Age: ${profile?.age || "unknown"}
-- Gender: ${profile?.gender || "unknown"}
-- Conditions: ${profile?.conditions || "none"}
-- Activity Level: ${profile?.activity_level || "unknown"}
-
-Analyse my symptom journal:
-
-${JSON.stringify(cleanLogs, null, 2)}
-`
-
+    // ✅ AI CALL (Groq)
     let aiResponse
 
     try {
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
-          messages: [
-            {
-              role: "system",
-              content: `You are a helpful health assistant that analyses symptom journals.
-Use the user's profile to give more personalized insights.
+      const response = await fetch(
+        "https://api.groq.com/openai/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "llama-3.1-8b-instant",
+            messages: [
+              {
+                role: "system",
+                content: `You are a smart health assistant.
 
-Format your response using clean markdown:
-- Use ## for section headings (Patterns, Possible Causes, Advice)
-- Use bullet points (- item)
-- Use **bold** for key terms
-- Do NOT repeat headings
-- Do NOT include IDs or JSON
-- End with a one-line doctor reminder`,
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-        }),
-      })
+You will be given computed insights from a symptom tracking app.
+
+Rules:
+- DO NOT invent new causes
+- DO NOT give generic medical advice
+- ONLY explain what the insights mean
+- Be clear, short, and personal
+- Use markdown:
+  - ## headings
+  - bullet points
+  - bold key points
+- End with a short doctor reminder`,
+              },
+              {
+                role: "user",
+                content: `These are my health insights:
+
+${insights.join("\n")}
+
+Explain what this means for me.`,
+              },
+            ],
+          }),
+        }
+      )
 
       aiResponse = await response.json()
     } catch {
       return NextResponse.json(
-        { error: "Failed to reach AI service. Please try again." },
+        { error: "AI service unavailable" },
         { status: 502 }
       )
     }
 
     const analysis =
       aiResponse?.choices?.[0]?.message?.content ||
-      "No analysis could be generated."
+      "No analysis generated."
 
     return NextResponse.json({ analysis })
-  } catch (err) {
+
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error ? err.message : "Unknown error"
+
     return NextResponse.json(
-      { error: "Server error" },
+      { error: message },
       { status: 500 }
     )
   }
