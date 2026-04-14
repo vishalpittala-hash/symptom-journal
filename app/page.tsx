@@ -77,14 +77,21 @@ export default function Home() {
   
       setUserEmail(data.user.email || "")
   
-      // 🔥 NEW: Check profile
-      const res = await fetch("/api/get-profile")
-      const profile = await res.json()
+      try {
+        const res = await fetch("/api/get-profile")
+        const profile = await res.json()
   
-      if (!profile || !profile.user_email) {
-        if (window.location.pathname !== "/user-profile") {
-        router.push("/user-profile")
-      }}
+        console.log("PROFILE:", profile)
+  
+        // 🔥 IMPORTANT FIX
+        if (profile === null) return
+  
+        // if (!profile?.user_email) {
+        //   router.push("/user-profile")
+        // }
+      } catch (err) {
+        console.error("Profile fetch error", err)
+      }
     }
   
     checkUser()
