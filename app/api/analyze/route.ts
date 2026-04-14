@@ -19,22 +19,20 @@ export async function GET(req: Request) {
     )
 
     // ✅ Get user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const url = new URL(req.url)
+const email = url.searchParams.get("email")
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+if (!email) {
+  return NextResponse.json(
+    { error: "Email required" },
+    { status: 400 }
+  )
+}
 
     // ✅ Fetch insights
     const baseUrl = new URL(req.url).origin
 
-    const insightsRes = await fetch(`${baseUrl}/api/insights`, {
-      headers: {
-        cookie: req.headers.get("cookie") || "",
-      },
-    })
+    const insightsRes = await fetch(`${baseUrl}/api/insights?email=${email}`)
 
     if (!insightsRes.ok) {
       console.error("INSIGHTS FAILED")
