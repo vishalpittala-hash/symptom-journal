@@ -75,10 +75,11 @@ export default function Home() {
         return
       }
   
-      setUserEmail(data.user.email || "")
+      const email = data.user.email || ""
+setUserEmail(email)
   
       try {
-        const res = await fetch("/api/get-profile")
+        const res = await fetch(`/api/get-profile?email=${email}`)
         const profile = await res.json()
   
         console.log("PROFILE:", profile)
