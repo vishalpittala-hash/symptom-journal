@@ -62,18 +62,31 @@ export default function Home() {
   const router = useRouter()
 
   useEffect(() => {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    const checkUser = async () => {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
   
-    supabase.auth.getUser().then(({ data }) => {
+      const { data } = await supabase.auth.getUser()
+  
       if (!data.user) {
         router.push("/login")
-      } else {
-        setUserEmail(data.user.email || "")
+        return
       }
-    })
+  
+      setUserEmail(data.user.email || "")
+  
+      // 🔥 NEW: Check profile
+      const res = await fetch("/api/get-profile")
+      const profile = await res.json()
+  
+      if (!profile || !profile.user_email) {
+        router.push("/profile")
+      }
+    }
+  
+    checkUser()
   }, [])
 
   const handleLogout = async () => {
