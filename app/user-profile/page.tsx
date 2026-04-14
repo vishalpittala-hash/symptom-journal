@@ -12,8 +12,8 @@ export default function UserProfilePage() {
   const [conditions, setConditions] = useState("")
   const [activityLevel, setActivityLevel] = useState("")
   const [userEmail, setUserEmail] = useState("")
+  const [loading, setLoading] = useState(false)
 
-  // 🔥 Get logged-in user email
   useEffect(() => {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,7 +28,12 @@ export default function UserProfilePage() {
   }, [])
 
   const handleSave = async () => {
-    console.log("Saving profile...")
+    if (!age || !gender || !activityLevel) {
+      alert("Please fill required fields")
+      return
+    }
+
+    setLoading(true)
 
     const res = await fetch("/api/profile", {
       method: "POST",
@@ -40,11 +45,11 @@ export default function UserProfilePage() {
         gender,
         conditions,
         activityLevel,
-        userEmail, // ✅ now defined
+        userEmail,
       }),
     })
 
-    console.log("STATUS:", res.status)
+    setLoading(false)
 
     if (res.ok) {
       router.push("/")
@@ -54,43 +59,77 @@ export default function UserProfilePage() {
   }
 
   return (
-    <div style={{ padding: 40 }}>
-      <h1>Set up your profile</h1>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center px-4">
+      
+      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl">
+        
+        {/* Header */}
+       {/* Header */}
+<div className="mb-6 text-center">
+  <div className="text-3xl mb-2">👤</div>
 
-      <input
-        placeholder="Age"
-        value={age}
-        onChange={(e) => setAge(e.target.value)}
-      />
-      <br /><br />
+  <h1 className="text-2xl font-bold text-gray-800">
+    Set up your profile
+  </h1>
 
-      <input
-        placeholder="Gender"
-        value={gender}
-        onChange={(e) => setGender(e.target.value)}
-      />
-      <br /><br />
+  <p className="text-sm text-gray-500 mt-1">
+    This helps us personalize your health insights
+  </p>
+</div>
 
-      <input
-        placeholder="Conditions (e.g. migraine)"
-        value={conditions}
-        onChange={(e) => setConditions(e.target.value)}
-      />
-      <br /><br />
+        {/* Inputs */}
+        <div className="space-y-4">
+          
+          <input
+            type="number"
+            placeholder="Age"
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
+            className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          />
 
-      <select
-        value={activityLevel}
-        onChange={(e) => setActivityLevel(e.target.value)}
-      >
-        <option value="">Select Activity Level</option>
-        <option value="low">Low</option>
-        <option value="medium">Medium</option>
-        <option value="high">High</option>
-      </select>
+          <select
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+            className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          >
+            <option value="">Select Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
 
-      <br /><br />
+          <input
+            type="text"
+            placeholder="Conditions (e.g. migraine, asthma)"
+            value={conditions}
+            onChange={(e) => setConditions(e.target.value)}
+            className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          />
 
-      <button onClick={handleSave}>Save Profile</button>
+          <select
+            value={activityLevel}
+            onChange={(e) => setActivityLevel(e.target.value)}
+            className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          >
+            <option value="">Activity Level</option>
+            <option value="low">Low</option>
+            <option value="medium">Moderate</option>
+            <option value="high">High</option>
+          </select>
+
+        </div>
+
+        {/* Button */}
+        <button
+          onClick={handleSave}
+          disabled={loading}
+          className="w-full mt-6 bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition disabled:opacity-50"
+        >
+          {loading ? "Saving..." : "Save Profile"}
+        </button>
+
+      </div>
     </div>
   )
 }
