@@ -225,6 +225,7 @@ setUserEmail(email)
 sleepHours: 6, // temporary (we’ll improve later)
           notes,
           bodyPart: bodyPart || null,
+          userEmail,
         }),
       })
 
