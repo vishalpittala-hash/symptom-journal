@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@supabase/supabase-js"
+import jsPDF from "jspdf"
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts"
 import InsightsDashboard from "../components/InsightsDashboard"
@@ -84,6 +85,47 @@ export default function Home() {
     await supabase.auth.signOut()
     router.push("/login")
   }
+  const handleDownloadReport = () => {
+    const doc = new jsPDF()
+  
+    doc.setFontSize(18)
+    doc.text("Health Report", 20, 20)
+  
+    doc.setFontSize(12)
+    doc.text(`User: ${userEmail}`, 20, 30)
+    doc.text(`Entries: ${data.length}`, 20, 40)
+  
+    const valid = data.filter((d) => d.mood)
+    const avg =
+      valid.length > 0
+        ? valid.reduce(
+            (sum, d) =>
+              sum +
+              (d.mood === "Mild" ? 1 : d.mood === "Moderate" ? 3 : 5),
+            0
+          ) / valid.length
+        : 0
+  
+    doc.text(`Average Severity: ${avg.toFixed(1)} / 5`, 20, 50)
+  
+    const count: Record<string, number> = {}
+    data.forEach((d) => {
+      count[d.symptom] = (count[d.symptom] || 0) + 1
+    })
+  
+    const top = Object.entries(count)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+  
+    doc.text("Top Symptoms:", 20, 60)
+  
+    top.forEach(([symptom, count], i) => {
+      doc.text(`- ${symptom} (${count})`, 20, 70 + i * 10)
+    })
+  
+    doc.save("health-report.pdf")
+  }
+
   // Onboarding
   const [name, setName]           = useState("")
   const [nameSet, setNameSet]     = useState(false)
@@ -572,6 +614,7 @@ sleepHours: 6, // temporary (we’ll improve later)
         )}
 
         {/* ── ANALYSIS TAB ────────────────────────────────────────────────── */}
+        
         {tab === "analysis" && (
           <div className="card">
             <h2>AI Analysis</h2>
@@ -604,6 +647,23 @@ sleepHours: 6, // temporary (we’ll improve later)
           </div>
         )}
         {tab === "insights" && <InsightsDashboard />}
+
+        <button
+  onClick={handleDownloadReport}
+  style={{
+    marginTop: "16px",
+    padding: "10px",
+    borderRadius: "8px",
+    background: "#2563eb",
+    color: "white",
+    border: "none",
+    cursor: "pointer"
+  }}
+>
+  📄 Download Doctor Report
+</button>
+
+
 
         {/* Footer */}
         <p style={{ textAlign: "center", color: "#334155", fontSize: 13, marginTop: 40 }}>
