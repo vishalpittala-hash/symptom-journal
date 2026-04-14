@@ -61,18 +61,30 @@ const SEVERITY_COLORS: Record<string, string> = {
 export default function Home() {
   const router = useRouter()
 
-useEffect(() => {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  useEffect(() => {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) {
+        router.push("/login")
+      } else {
+        setUserEmail(data.user.email || "")
+      }
+    })
+  }, [])
 
-  supabase.auth.getUser().then(({ data }) => {
-    if (!data.user) {
-      router.push("/login")
-    }
-  })
-}, [])
+  const handleLogout = async () => {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  
+    await supabase.auth.signOut()
+    router.push("/login")
+  }
   // Onboarding
   const [name, setName]           = useState("")
   const [nameSet, setNameSet]     = useState(false)
@@ -90,6 +102,7 @@ useEffect(() => {
   const [loading,  setLoading]  = useState(false)
   const [saving,   setSaving]   = useState(false)
   const [tab, setTab] = useState<"log" | "history" | "analysis" | "insights">("log")
+  const [userEmail, setUserEmail] = useState("")
   const [toast,    setToast]    = useState<Toast | null>(null)
 
   // ── Fetch history ──
@@ -264,6 +277,32 @@ sleepHours: 6, // temporary (we’ll improve later)
       )}
 
       <div className="container">
+        {/* 🔥 USER BAR (ADD THIS) */}
+  <div style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "20px"
+  }}>
+    <span style={{ color: "#94a3b8", fontSize: "14px" }}>
+      {userEmail}
+    </span>
+
+    <button
+      onClick={handleLogout}
+      style={{
+        padding: "6px 12px",
+        borderRadius: "8px",
+        background: "#dc2626",
+        color: "white",
+        border: "none",
+        cursor: "pointer"
+      }}
+    >
+      Logout
+    </button>
+  </div>
+
 
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 28 }}>
