@@ -31,16 +31,19 @@ export async function GET(req: Request) {
       )
     }
 
-    // ✅ Call your own insights API (same domain, no env needed)
+    // ✅ Call insights API
     const baseUrl = new URL(req.url).origin
 
     const insightsRes = await fetch(`${baseUrl}/api/insights`, {
       headers: {
-        cookie: req.headers.get("cookie") || "", // 🔥 important for auth
+        cookie: req.headers.get("cookie") || "",
       },
     })
 
     if (!insightsRes.ok) {
+      const errText = await insightsRes.text()
+      console.error("INSIGHTS ERROR:", errText)
+
       return NextResponse.json(
         { error: "Failed to fetch insights" },
         { status: 500 }
@@ -56,66 +59,72 @@ export async function GET(req: Request) {
       })
     }
 
-    // ✅ AI CALL (Groq)
-    let aiResponse
+    // ✅ GROQ AI CALL (FIXED)
+    const response = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-8b-instant",
+          messages: [
+            {
+              role: "system",
+              content: `You are a smart health assistant.
 
-    try {
-      const response = await fetch(
-        "https://api.groq.com/openai/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "llama-3.1-8b-instant",
-            messages: [
-              {
-                role: "system",
-                content: `You are a smart health assistant.
+Explain insights clearly.
+Do NOT invent causes.
+Be short and personal.
 
-You will be given computed insights from a symptom tracking app.
+Format:
+## Patterns
+## Meaning
+## What to watch
 
-Rules:
-- DO NOT invent new causes
-- DO NOT give generic medical advice
-- ONLY explain what the insights mean
-- Be clear, short, and personal
-- Use markdown:
-  - ## headings
-  - bullet points
-  - bold key points
-- End with a short doctor reminder`,
-              },
-              {
-                role: "user",
-                content: `These are my health insights:
+Use bullet points and bold key terms.
+End with a one-line doctor reminder.`,
+            },
+            {
+              role: "user",
+              content: `These are my health insights:
 
 ${insights.join("\n")}
 
 Explain what this means for me.`,
-              },
-            ],
-          }),
-        }
-      )
+            },
+          ],
+        }),
+      }
+    )
 
-      aiResponse = await response.json()
-    } catch {
+    const data = await response.json()
+
+    // 🔥 HANDLE GROQ ERROR
+    if (!response.ok) {
+      console.error("GROQ ERROR:", data)
+
       return NextResponse.json(
-        { error: "AI service unavailable" },
-        { status: 502 }
+        {
+          error: "AI failed",
+          details: data,
+        },
+        { status: 500 }
       )
     }
 
+    // 🔥 SAFE EXTRACTION
     const analysis =
-      aiResponse?.choices?.[0]?.message?.content ||
-      "No analysis generated."
+      data?.choices?.[0]?.message?.content ||
+      JSON.stringify(data)
 
     return NextResponse.json({ analysis })
 
   } catch (err: unknown) {
+    console.error("SERVER ERROR:", err)
+
     const message =
       err instanceof Error ? err.message : "Unknown error"
 
