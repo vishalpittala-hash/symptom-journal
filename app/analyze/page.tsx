@@ -6,7 +6,9 @@ export default function Analyze() {
   const [analysis, setAnalysis] = useState("Loading...")
 
   useEffect(() => {
-    fetch("/api/analyze")
+    fetch("/api/analyze", {
+      credentials: "include",
+    })
       .then(res => res.json())
       .then(data => setAnalysis(data.analysis))
   }, [])
