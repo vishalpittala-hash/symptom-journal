@@ -199,6 +199,33 @@ sleepHours: 6, // temporary (we’ll improve later)
     }
   }
 
+  const handleSmartParse = async () => {
+    if (!smartInput) return
+  
+    try {
+      const res = await fetch("/api/parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: smartInput }),
+      })
+  
+      const data = await res.json()
+  
+      setSymptom(data.symptom)
+      setSeverity(
+        data.severity === 1
+          ? "Mild"
+          : data.severity === 3
+          ? "Moderate"
+          : "Severe"
+      )
+      setBodyPart(data.bodyPart || "")
+      setNotes(data.notes || "")
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   // ── Analyze ──
   const handleAnalyze = async () => {
     if (data.length === 0) { showToast("Log some symptoms first.", "error"); return }
