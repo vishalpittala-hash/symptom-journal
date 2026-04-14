@@ -2,16 +2,34 @@
 
 import { useEffect, useState } from "react"
 
-export default function InsightsDashboard() {
+export default function InsightsDashboard() { 
+  
   const [insights, setInsights] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
+
+  // 🔥 TIME INSIGHT (simple version for now)
+  const getTimeInsight = (insights: string[]) => {
+    if (!insights.length) return null
+    return "🌙 Evening symptoms are more frequent"
+  }
 
   useEffect(() => {
     async function fetchInsights() {
       try {
         const res = await fetch("/api/insights")
         const data = await res.json()
-        setInsights(data.insights || [])
+
+        const baseInsights = data.insights || []
+
+        // 🔥 ADD TIME INSIGHT
+        const timeInsight = getTimeInsight(baseInsights)
+
+        if (timeInsight) {
+          baseInsights.push(timeInsight)
+        }
+
+        setInsights(baseInsights)
+
       } catch (err) {
         console.error(err)
       } finally {
@@ -37,6 +55,7 @@ export default function InsightsDashboard() {
       !i.includes("Most frequent") &&
       !i.includes("Average")
   )
+
   return (
     <div className="card">
       <h2 style={{ marginBottom: "16px" }}>🧠 Smart Insights</h2>
@@ -120,8 +139,9 @@ export default function InsightsDashboard() {
             </h3>
           </div>
 
-          {/* Other insights */}
-          {filteredInsights.map((insight, i) => (            <div
+          {/* 🔥 Other insights */}
+          {filteredInsights.map((insight, i) => (
+            <div
               key={i}
               style={{
                 padding: "12px",
