@@ -1,5 +1,4 @@
 "use client"
-
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@supabase/supabase-js"
@@ -95,6 +94,7 @@ export default function Home() {
   const [severity, setSeverity] = useState("")
   const [notes,    setNotes]    = useState("")
   const [bodyPart, setBodyPart] = useState("")
+  const [smartInput, setSmartInput] = useState("")
 
   // App state
   const [data,     setData]     = useState<Entry[]>([])
@@ -333,10 +333,41 @@ sleepHours: 6, // temporary (we’ll improve later)
         </div>
 
         {/* ── LOG TAB ─────────────────────────────────────────────────────── */}
+        
         {tab === "log" && (
-          <div className="card">
-            <h2>Log a symptom</h2>
-            <p className="card-hint">Fill in the details below and tap Save Entry.</p>
+  <div className="card">
+    <h2>Log a symptom</h2>
+    <p className="card-hint">
+      Fill in the details below and tap Save Entry.
+    </p>
+
+    {/* 🔥 SMART LOG (ADD THIS BLOCK) */}
+    <label className="field-label">Smart Input (AI)</label>
+
+    <textarea
+      className="input"
+      placeholder="Describe your symptom... e.g. headache after poor sleep"
+      value={smartInput}
+      onChange={(e) => setSmartInput(e.target.value)}
+      style={{ marginBottom: "10px" }}
+    />
+
+    <button
+      onClick={handleSmartParse}
+      style={{
+        marginBottom: "16px",
+        padding: "10px",
+        borderRadius: "8px",
+        background: "#3b82f6",
+        color: "white",
+        border: "none",
+        cursor: "pointer",
+      }}
+    >
+      ✨ Auto Fill with AI
+    </button>
+
+    {/* EXISTING FORM CONTINUES BELOW */}
 
             {/* Body part */}
             <label className="field-label">Body area</label>
