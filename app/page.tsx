@@ -82,8 +82,9 @@ export default function Home() {
       const profile = await res.json()
   
       if (!profile || !profile.user_email) {
+        if (window.location.pathname !== "/user-profile") {
         router.push("/user-profile")
-      }
+      }}
     }
   
     checkUser()
