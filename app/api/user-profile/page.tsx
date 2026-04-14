@@ -13,7 +13,8 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     console.log("Saving profile clicked")
-    await fetch("/api/profile", {
+  
+    const res = await fetch("/api/profile", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -25,7 +26,10 @@ export default function ProfilePage() {
         activityLevel,
       }),
     })
-
+  
+    console.log("RESPONSE:", res)
+  
+    // 🔥 ADD THIS LINE
     router.push("/")
   }
 
