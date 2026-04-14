@@ -58,8 +58,13 @@ const SEVERITY_COLORS: Record<string, string> = {
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
+
 export default function Home() {
   const router = useRouter()
+
+  const [loading, setLoading] = useState(true)
+  const [userEmail, setUserEmail] = useState("")
+
 
   useEffect(() => {
     const checkUser = async () => {
@@ -67,56 +72,62 @@ export default function Home() {
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       )
-  
+
       const { data } = await supabase.auth.getUser()
-  
+
+      // ❌ Not logged in
       if (!data.user) {
         router.push("/login")
         return
       }
-  
+
       const email = data.user.email || ""
-setUserEmail(email)
-  
+      setUserEmail(email)
+
       try {
         const res = await fetch(`/api/get-profile?email=${email}`)
         const profile = await res.json()
-  
+
         console.log("PROFILE:", profile)
-  
-        // 🔥 IMPORTANT FIX
-        if (profile === null) return
-  
-        // if (!profile?.user_email) {
-        //   router.push("/user-profile")
-        // }
+
+        // 🔥 FIXED LOGIC
+        if (!profile || Object.keys(profile).length === 0) {
+          router.push("/user-profile")
+          return
+        }
+
       } catch (err) {
         console.error("Profile fetch error", err)
       }
+
+      setLoading(false)
     }
-  
+
     checkUser()
   }, [])
+
+  // 🔥 BLOCK UI UNTIL READY
 
   const handleLogout = async () => {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
-  
+
     await supabase.auth.signOut()
     router.push("/login")
   }
+
   const handleDownloadReport = () => {
     const doc = new jsPDF()
-  
+
     doc.setFontSize(18)
     doc.text("Health Report", 20, 20)
-  
+
     doc.setFontSize(12)
     doc.text(`User: ${userEmail}`, 20, 30)
     doc.text(`Entries: ${data.length}`, 20, 40)
-  
+
     const valid = data.filter((d) => d.mood)
     const avg =
       valid.length > 0
@@ -127,26 +138,28 @@ setUserEmail(email)
             0
           ) / valid.length
         : 0
-  
+
     doc.text(`Average Severity: ${avg.toFixed(1)} / 5`, 20, 50)
-  
+
     const count: Record<string, number> = {}
     data.forEach((d) => {
       count[d.symptom] = (count[d.symptom] || 0) + 1
     })
-  
+
     const top = Object.entries(count)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
-  
+
     doc.text("Top Symptoms:", 20, 60)
-  
+
     top.forEach(([symptom, count], i) => {
       doc.text(`- ${symptom} (${count})`, 20, 70 + i * 10)
     })
-  
+
     doc.save("health-report.pdf")
   }
+
+  // 👇 KEEP YOUR EXISTING UI RETURN BELOW
 
   // Onboarding
   const [name, setName]           = useState("")
@@ -163,10 +176,9 @@ setUserEmail(email)
   // App state
   const [data,     setData]     = useState<Entry[]>([])
   const [analysis, setAnalysis] = useState("")
-  const [loading,  setLoading]  = useState(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [saving,   setSaving]   = useState(false)
   const [tab, setTab] = useState<"log" | "history" | "analysis" | "insights">("log")
-  const [userEmail, setUserEmail] = useState("")
   const [toast,    setToast]    = useState<Toast | null>(null)
 
   // ── Fetch history ──
@@ -303,7 +315,7 @@ sleepHours: 6, // temporary (we’ll improve later)
       return
     }
   
-    setLoading(true)
+    setIsAnalyzing(true)
     setAnalysis("")
   
     try {
@@ -314,7 +326,7 @@ sleepHours: 6, // temporary (we’ll improve later)
       showToast("Analysis failed. Try again.", "error")
     }
   
-    setLoading(false)
+    setIsAnalyzing(false)
   }
 
   // ── Chart data by severity ──
@@ -337,6 +349,10 @@ sleepHours: 6, // temporary (we’ll improve later)
     })
   }
 
+  if (loading) {
+    return <div style={{ padding: 40 }}>Loading...</div>
+  }
+  
   // ─── Onboarding screen ──────────────────────────────────────────────────────
   if (!nameSet) {
     return (
@@ -661,10 +677,10 @@ sleepHours: 6, // temporary (we’ll improve later)
             <button
               className="btn-primary"
               onClick={handleAnalyze}
-              disabled={loading || data.length === 0}
-              style={{ opacity: loading || data.length === 0 ? 0.5 : 1 }}
+              disabled={isAnalyzing || data.length === 0}
+              style={{ opacity: isAnalyzing || data.length === 0 ? 0.5 : 1 }}
             >
-              {loading ? "Analysing…" : "Analyse my symptoms"}
+              {isAnalyzing ? "Analysing…" : "Analyse my symptoms"}
             </button>
 
             {analysis && (
