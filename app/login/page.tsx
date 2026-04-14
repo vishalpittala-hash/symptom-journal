@@ -17,11 +17,11 @@ export default function LoginPage() {
     setMessage("")
   
     const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: "http://localhost:3000/auth/callback",
-      },
-    })
+        email,
+        options: {
+          emailRedirectTo: "https://symptom-journal.vercel.app/auth/callback"
+        },
+      })
   
     if (error) {
       setMessage(error.message || "Error sending login link")
