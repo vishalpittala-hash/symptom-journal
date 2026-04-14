@@ -59,7 +59,7 @@ export async function GET(req: Request) {
       })
     }
 
-    // ✅ GROQ AI CALL (FIXED)
+    // ✅ GROQ AI CALL
     const response = await fetch(
       "https://api.groq.com/openai/v1/chat/completions",
       {
@@ -115,10 +115,42 @@ Explain what this means for me.`,
       )
     }
 
-    // 🔥 SAFE EXTRACTION
-    const analysis =
-      data?.choices?.[0]?.message?.content ||
-      JSON.stringify(data)
+    // 🔥 DEBUG LOG
+    console.log("GROQ RAW RESPONSE:", JSON.stringify(data, null, 2))
+
+    let analysis = ""
+
+    // ✅ Standard response
+    if (
+      data &&
+      data.choices &&
+      data.choices[0] &&
+      data.choices[0].message &&
+      data.choices[0].message.content
+    ) {
+      analysis = data.choices[0].message.content
+    }
+
+    // ✅ Alternate format
+    else if (
+      data &&
+      data.choices &&
+      data.choices[0] &&
+      data.choices[0].text
+    ) {
+      analysis = data.choices[0].text
+    }
+
+    // ❌ Fallback (never empty)
+    else {
+      analysis = [
+        "## Your Health Insights",
+        "",
+        ...insights.map((i: string) => `- ${i}`),
+        "",
+        "⚠️ AI explanation unavailable right now, but insights are shown above."
+      ].join("\n")
+    }
 
     return NextResponse.json({ analysis })
 
