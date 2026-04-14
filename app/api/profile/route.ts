@@ -13,9 +13,8 @@ export async function POST(req: Request) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-            get(name: string) {
-                return (cookieStore as any).get(name)?.value
-              
+          get(name: string) {
+            return (cookieStore as any).get(name)?.value
           },
         },
       }
@@ -31,7 +30,7 @@ export async function POST(req: Request) {
 
     const { age, gender, conditions, activityLevel } = body
 
-    const { error } = await supabase
+    const { error: insertError } = await supabase
       .from("user_profiles")
       .upsert({
         user_email: user.email,
@@ -41,12 +40,20 @@ export async function POST(req: Request) {
         activity_level: activityLevel,
       })
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (insertError) {
+      console.error("SUPABASE ERROR:", insertError)
+      return NextResponse.json(
+        { error: insertError.message },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 })
+    console.error("SERVER ERROR:", err)
+    return NextResponse.json(
+      { error: "Server error" },
+      { status: 500 }
+    )
   }
 }
