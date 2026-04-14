@@ -292,16 +292,27 @@ sleepHours: 6, // temporary (we’ll improve later)
 
   // ── Analyze ──
   const handleAnalyze = async () => {
-    if (data.length === 0) { showToast("Log some symptoms first.", "error"); return }
+    if (!userEmail) {
+      showToast("User not loaded yet. Try again.", "error")
+      return
+    }
+  
+    if (data.length === 0) {
+      showToast("Log some symptoms first.", "error")
+      return
+    }
+  
     setLoading(true)
     setAnalysis("")
+  
     try {
-      const res    = await fetch("/api/analyze")
+      const res = await fetch(`/api/analyze?email=${userEmail}`)
       const result = await res.json()
       setAnalysis(result.analysis || "No analysis returned.")
     } catch {
       showToast("Analysis failed. Try again.", "error")
     }
+  
     setLoading(false)
   }
 
