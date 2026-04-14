@@ -1,48 +1,43 @@
 import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
-import { createServerClient } from "@supabase/ssr"
+import { createClient } from "@supabase/supabase-js"
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    // ✅ Create authenticated Supabase client
-    const cookieStore = await cookies()
+    // ✅ Get email from query
+    const url = new URL(req.url)
+    const email = url.searchParams.get("email")
 
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value
-          },
-        },
-      }
-    )
-
-    // ✅ Get logged-in user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!email) {
+      return NextResponse.json(
+        { error: "Email required" },
+        { status: 400 }
+      )
     }
 
-    // ✅ Fetch ONLY this user's data
+    // ✅ Simple Supabase client (no auth dependency)
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    // ✅ Fetch user-specific logs
     const { data: logs, error } = await supabase
       .from("symptoms")
       .select("*")
-      .eq("user_email", user.email)
+      .eq("user_email", email)
       .order("created_at", { ascending: false })
       .limit(50)
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      )
     }
 
     const insights = generateInsights(logs || [])
 
-    // 🔥 Predictive alert (recent trend)
+    // 🔥 Predictive alert
     const recent = (logs || []).slice(0, 5)
 
     if (recent.length >= 3) {
@@ -64,12 +59,17 @@ export async function GET() {
     return NextResponse.json({ insights })
 
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Unknown error"
-    return NextResponse.json({ error: message }, { status: 500 })
+    const message =
+      err instanceof Error ? err.message : "Unknown error"
+
+    return NextResponse.json(
+      { error: message },
+      { status: 500 }
+    )
   }
 }
 
-// 🔥 MAIN INSIGHT ENGINE
+// 🔥 INSIGHT ENGINE
 function generateInsights(logs: any[]) {
   if (!logs.length) return ["No data yet"]
 
@@ -101,17 +101,14 @@ function generateInsights(logs: any[]) {
 
   insights.push(`Average severity: ${avg.toFixed(1)} / 5`)
 
-  // 🔥 SLEEP CORRELATION (REAL % BASED)
+  // 🔥 Sleep correlation
   let lowSleepHighSeverity = 0
   let totalLowSleep = 0
 
   logs.forEach(l => {
     if (l.sleep_hours && l.sleep_hours < 6) {
       totalLowSleep++
-
-      if (l.severity >= 4) {
-        lowSleepHighSeverity++
-      }
+      if (l.severity >= 4) lowSleepHighSeverity++
     }
   })
 
@@ -127,7 +124,7 @@ function generateInsights(logs: any[]) {
     }
   }
 
-  // 🔥 TIME-OF-DAY CORRELATION
+  // 🔥 Time-of-day correlation
   const morning = logs.filter(l => {
     const h = new Date(l.created_at).getHours()
     return h < 12
@@ -152,7 +149,7 @@ function generateInsights(logs: any[]) {
     }
   }
 
-  // 🔥 TRIGGER DETECTION (NOTES)
+  // 🔥 Trigger detection
   const noteText = logs
     .map(l => l.notes?.toLowerCase() || "")
     .join(" ")
@@ -169,13 +166,13 @@ function generateInsights(logs: any[]) {
     insights.push("Stress-related patterns detected in your symptoms")
   }
 
-  // 🔥 SMART SUMMARY
+  // 🔥 Smart summary
   const hasSignals = insights.some(
     i =>
       i.includes("sleep") ||
       i.includes("alcohol") ||
       i.includes("physical") ||
-      i.includes("stress") 
+      i.includes("stress")
   )
 
   if (hasSignals) {
