@@ -82,7 +82,7 @@ export default function Home() {
       const profile = await res.json()
   
       if (!profile || !profile.user_email) {
-        router.push("/profile")
+        router.push("/user-profile")
       }
     }
   
