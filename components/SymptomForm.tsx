@@ -880,7 +880,7 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
         <h3 style={{ color: "#2dd4bf", marginBottom: "12px", fontSize: "16px", fontWeight: 600 }}>🧠 AI Health Insight</h3>
         
         {/* Profile-based intro - Badge style */}
-        {userProfile && (userProfile.age || userProfile.conditions || userProfile.activityLevel) && (
+        {userProfile && (
           <div style={{
             padding: "12px",
             borderRadius: "12px",
@@ -941,6 +941,11 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
                 }}>
                   <span style={{ fontSize: "14px" }}>🩺</span>
                   <span>{userProfile.conditions}</span>
+                </div>
+              )}
+              {!userProfile.age && !userProfile.activityLevel && !userProfile.conditions && (
+                <div style={{ fontSize: "12px", color: "#94a3b8" }}>
+                  Profile loaded but no details available
                 </div>
               )}
             </div>
