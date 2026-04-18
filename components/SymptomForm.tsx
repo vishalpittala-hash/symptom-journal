@@ -390,22 +390,30 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
   const handleAskQuestion = async () => {
     if (!aiQuestion.trim()) return
 
+    setIsAnalyzing(true)
+    
+    // Add user question to messages
     const userMessage = {
-      id: Date.now().toString(),
+      id: (Date.now() + 1).toString(),
       sender: 'user' as const,
       text: aiQuestion,
       timestamp: new Date()
     }
-
     const updatedMessages = [...messages, userMessage]
     setMessages(updatedMessages)
-    setAiQuestion("")
-
-    // Load symptom context if available (from history continue chat)
-    const savedContext = localStorage.getItem('symptomContext')
-    const symptomContext = savedContext ? JSON.parse(savedContext) : null
 
     try {
+      // Build current symptom context from form state
+      const currentSymptomContext = symptom || severity || bodyPart ? {
+        symptom,
+        severity: severity === 'Mild' ? 1 : severity === 'Moderate' ? 3 : 5,
+        bodyPart,
+        notes,
+        sleepHours: sleepHours ? parseFloat(sleepHours) : undefined,
+        stressLevel: stressLevel ? parseInt(stressLevel) : undefined,
+        weather
+      } : null
+
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -414,7 +422,7 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
           context: "followup_question",
           conversation: messages,
           userProfile: userProfile,
-          symptomContext: symptomContext
+          symptomContext: currentSymptomContext
         })
       })
 
@@ -422,7 +430,7 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
       const aiResponse = data.analysis || "I understand. Please tell me more about how you're feeling."
 
       const aiMessage = {
-        id: (Date.now() + 1).toString(),
+        id: (Date.now() + 2).toString(),
         sender: 'ai' as const,
         text: aiResponse,
         timestamp: new Date()
@@ -445,6 +453,8 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
         aiDiscussion: finalMessages,
         id: currentEntryId || undefined
       })
+      
+      setAiQuestion("")
     } catch (error) {
       console.error("Question error:", error)
       setMessages(prev => [...prev, {
@@ -453,6 +463,7 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
         text: "Sorry, I couldn't process that question. Please try again.",
         timestamp: new Date()
       }])
+    } finally {
       setIsAnalyzing(false)
     }
   }

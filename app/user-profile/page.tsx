@@ -37,7 +37,7 @@ export default function UserProfilePage() {
     const profile = {
       age: Number(age),
       gender,
-      conditions,
+      conditions: conditions && conditions.toLowerCase() !== 'no' ? conditions : '',
       activityLevel
     }
     localStorage.setItem('symptomProfile', JSON.stringify(profile))
