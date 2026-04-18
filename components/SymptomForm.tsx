@@ -100,6 +100,7 @@ export default function SymptomForm({ onSave, loading }: SymptomFormProps) {
   const [isListening, setIsListening] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [profileLoaded, setProfileLoaded] = useState(false)
 
   // Persist conversation to localStorage
   useEffect(() => {
@@ -140,9 +141,12 @@ export default function SymptomForm({ onSave, loading }: SymptomFormProps) {
       try {
         const profile = JSON.parse(savedProfile)
         setUserProfile(profile)
+        setProfileLoaded(true)
       } catch (error) {
         console.error("Error loading profile:", error)
       }
+    } else {
+      setProfileLoaded(false)
     }
     
     // Load symptom context if available (from history continue chat)
@@ -889,7 +893,7 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
             marginBottom: "12px"
           }}>
             <div style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-              Your Profile
+              Your Profile {profileLoaded ? "✓" : "⚠️"}
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
               {userProfile.age && (

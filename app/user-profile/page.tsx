@@ -35,8 +35,6 @@ export default function UserProfilePage() {
 
     // Save profile to localStorage
     const profile = {
-      email: "user@local.dev",
-      name: "User",
       age: Number(age),
       gender,
       conditions,
