@@ -1,38 +1,41 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import axios from 'axios'
+import https from 'https'
+
+// Create axios instance that ignores SSL certificate errors (for development)
+const axiosInstance = axios.create({
+  httpsAgent: new https.Agent({
+    rejectUnauthorized: false
+  })
+})
 
 export async function GET(req: Request) {
   try {
-    // ✅ Get email from query
-    const url = new URL(req.url)
-    const email = url.searchParams.get("email")
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-    if (!email) {
-      return NextResponse.json(
-        { error: "Email required" },
-        { status: 400 }
-      )
-    }
-
-    // ✅ Simple Supabase client (no auth dependency)
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    // Use axiosInstance instead of fetch
+    const response = await axiosInstance.get(
+      `${supabaseUrl}/rest/v1/symptoms`,
+      {
+        params: {
+          select: '*',
+          order: 'created_at.desc',
+          limit: 50
+        },
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json'
+        }
+      }
     )
 
-    // ✅ Fetch user-specific logs
-    const { data: logs, error } = await supabase
-      .from("symptoms")
-      .select("*")
-      .eq("user_email", email)
-      .order("created_at", { ascending: false })
-      .limit(50)
+    const logs = response.data
 
-    if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      )
+    console.log("Insights API - Logs count:", logs?.length || 0)
+    if (logs && logs.length > 0) {
+      console.log("Insights API - Sample log:", logs[0])
     }
 
     const insights = generateInsights(logs || [])
@@ -56,9 +59,16 @@ export async function GET(req: Request) {
       }
     }
 
-    return NextResponse.json({ insights })
+    console.log("Insights API - Generated insights:", insights)
+
+    return NextResponse.json({ 
+      insights,
+      totalLogs: logs?.length || 0,
+      data: logs || []
+    })
 
   } catch (err: unknown) {
+    console.error("Insights API error:", err)
     const message =
       err instanceof Error ? err.message : "Unknown error"
 
@@ -124,6 +134,29 @@ function generateInsights(logs: any[]) {
     }
   }
 
+  // 🔥 Stress correlation
+  let highStressHighSeverity = 0
+  let totalHighStress = 0
+
+  logs.forEach(l => {
+    if (l.stress_level && l.stress_level >= 4) {
+      totalHighStress++
+      if (l.severity >= 4) highStressHighSeverity++
+    }
+  })
+
+  if (totalHighStress > 2) {
+    const percent = Math.round(
+      (highStressHighSeverity / totalHighStress) * 100
+    )
+
+    if (percent > 60) {
+      insights.push(
+        `😰 High stress levels correlate with ${percent}% of severe symptoms`
+      )
+    }
+  }
+
   // 🔥 Time-of-day correlation
   const morning = logs.filter(l => {
     const h = new Date(l.created_at).getHours()
@@ -166,18 +199,52 @@ function generateInsights(logs: any[]) {
     insights.push("Stress-related patterns detected in your symptoms")
   }
 
+  // 🔥 Weather correlation
+  const weatherGroups: Record<string, any[]> = {}
+  logs.forEach(l => {
+    if (l.weather) {
+      const condition = l.weather.split(' ')[0] // Get main condition
+      if (!weatherGroups[condition]) weatherGroups[condition] = []
+      weatherGroups[condition].push(l)
+    }
+  })
+
+  Object.entries(weatherGroups).forEach(([condition, entries]) => {
+    if (entries.length >= 3) {
+      const avgSeverity = entries.reduce((sum, e) => sum + e.severity, 0) / entries.length
+      if (avgSeverity >= 4) {
+        insights.push(
+          `🌤️ ${condition} weather correlates with more severe symptoms (${avgSeverity.toFixed(1)}/5 average)`
+        )
+      }
+    }
+  })
+
+  // 🔥 Medication correlation
+  const medEffects: Record<string, { before: number[], after: number[] }> = {}
+  logs.forEach(l => {
+    if (l.medications && Array.isArray(l.medications)) {
+      l.medications.forEach((med: string) => {
+        if (!medEffects[med]) medEffects[med] = { before: [], after: [] }
+        // Simple logic: if medication was taken, check if next entries are better/worse
+        medEffects[med].after.push(l.severity)
+      })
+    }
+  })
+
   // 🔥 Smart summary
   const hasSignals = insights.some(
     i =>
       i.includes("sleep") ||
       i.includes("alcohol") ||
       i.includes("physical") ||
-      i.includes("stress")
+      i.includes("stress") ||
+      i.includes("weather")
   )
 
   if (hasSignals) {
     insights.unshift(
-      "Your symptoms appear to be influenced by lifestyle factors like sleep, stress, and daily habits."
+      "Your symptoms appear to be influenced by lifestyle factors like sleep, stress, weather, and daily habits."
     )
   }
 

@@ -7,8 +7,12 @@ export async function POST(req: Request) {
 
     const { age, gender, conditions, activityLevel, userEmail } = body
 
+    // ✅ Proper validation
     if (!userEmail) {
-      return NextResponse.json({ error: "Missing email" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Missing user email" },
+        { status: 400 }
+      )
     }
 
     const supabase = createClient(
@@ -17,28 +21,36 @@ export async function POST(req: Request) {
     )
 
     const { error } = await supabase
-  .from("user_profiles")
-  .upsert(
-    {
-      user_email: userEmail,
-      age,
-      gender,
-      conditions,
-      activity_level: activityLevel,
-    },
-    {
-      onConflict: "user_email", // 🔥 IMPORTANT
-    }
-  )
+      .from("user_profiles")
+      .upsert(
+        {
+          user_email: userEmail,
+          age,
+          gender,
+          conditions,
+          activity_level: activityLevel,
+        },
+        {
+          onConflict: "user_email",
+        }
+      )
 
     if (error) {
       console.error("SUPABASE ERROR:", error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error("SERVER ERROR:", err)
-    return NextResponse.json({ error: "Server error" }, { status: 500 })
+
+    return NextResponse.json(
+      { error: "Server error" },
+      { status: 500 }
+    )
   }
 }

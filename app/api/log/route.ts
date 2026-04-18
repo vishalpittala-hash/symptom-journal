@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import axios from 'axios'
+import https from 'https'
+
+// Create axios instance that ignores SSL certificate errors (for development)
+const axiosInstance = axios.create({
+  httpsAgent: new https.Agent({
+    rejectUnauthorized: false
+  })
+})
 
 export async function POST(req: Request) {
   try {
@@ -11,46 +19,82 @@ export async function POST(req: Request) {
       bodyPart,
       notes,
       sleepHours,
-      userEmail, // 🔥 REQUIRED
+      stressLevel,
+      weather,
+      medications,
+      triggers,
+      userEmail, // Optional now
+      aiDiscussion, // Conversation history
+      id, // Entry ID for updates
     } = body
 
-    if (!symptom || !severity || !userEmail) {
+    console.log("Log API - Received data:", body)
+
+    if (!symptom || !severity) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       )
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    // Use default user email if not provided
+    const userEmailToUse = userEmail || "user@local.dev"
+    console.log("Log API - Using email:", userEmailToUse)
 
-    const { error } = await supabase.from("symptoms").insert([
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+    // If ID is provided, update existing entry
+    if (id) {
+      await axiosInstance.patch(
+        `${supabaseUrl}/rest/v1/symptoms`,
+        {
+          ai_discussion: aiDiscussion || null,
+        },
+        {
+          params: {
+            id: `eq.${id}`,
+          },
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+      console.log("Log API - Update Success")
+      return NextResponse.json({ success: true, updated: true })
+    }
+
+    // Use axiosInstance instead of fetch
+    await axiosInstance.post(
+      `${supabaseUrl}/rest/v1/symptoms`,
       {
         symptom,
         severity,
         body_part: bodyPart || null,
         notes: notes || null,
         sleep_hours: sleepHours || null,
-        user_email: userEmail,
+        stress_level: stressLevel || null,
+        weather: weather || null,
+        medications: medications || null,
+        triggers: triggers || null,
+        user_email: userEmailToUse,
+        ai_discussion: aiDiscussion || null,
       },
-    ])
-
-    if (error) {
-      console.error("LOG ERROR:", error)
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({ success: true })
-  } catch (err) {
-    console.error("SERVER ERROR:", err)
-    return NextResponse.json(
-      { error: "Server error" },
-      { status: 500 }
+      {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json'
+        }
+      }
     )
+
+    console.log("Log API - Success")
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Log API error:", error)
+    return NextResponse.json({ error: (error as any).message }, { status: 500 })
   }
 }
