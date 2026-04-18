@@ -134,8 +134,15 @@ export default function SymptomForm({ onSave, loading }: SymptomFormProps) {
     
     // Load user profile
     if (savedProfile) {
-      const profile = JSON.parse(savedProfile)
-      setUserProfile(profile)
+      try {
+        const profile = JSON.parse(savedProfile)
+        console.log("Loaded profile:", profile)
+        setUserProfile(profile)
+      } catch (error) {
+        console.error("Error loading profile:", error)
+      }
+    } else {
+      console.log("No profile found in localStorage")
     }
     
     // Load symptom context if available (from history continue chat)
@@ -319,6 +326,7 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
   const handleAnalyzeAndSave = async () => {
     if (!symptom.trim() || !severity) return
     
+    console.log("Starting AI analysis for:", symptom, severity)
     setIsAnalyzing(true)
     setAiAnalysis("")
     
@@ -334,7 +342,9 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
       })
       
       const data = await res.json()
+      console.log("API response:", data)
       const analysis = data.analysis || generateLocalAnalysis()
+      console.log("Setting analysis:", analysis)
       setAiAnalysis(analysis)
       
       // Auto-save after successful analysis
