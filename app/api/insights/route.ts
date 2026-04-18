@@ -45,7 +45,7 @@ export async function GET(req: Request) {
 
     if (recent.length >= 3) {
       const avgRecent =
-        recent.reduce((sum, l) => sum + (l.severity || 0), 0) /
+        recent.reduce((sum: number, l: any) => sum + (l.severity || 0), 0) /
         recent.length
 
       if (avgRecent >= 4) {
