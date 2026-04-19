@@ -414,6 +414,9 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
         weather
       } : null
 
+      console.log("Sending to API with symptom context:", currentSymptomContext)
+      console.log("Current form state:", { symptom, severity, bodyPart })
+
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1079,7 +1082,10 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
               {["Why is this happening?", "What should I eat?", "What medication helps?", "When should I see a doctor?"].map((suggestion, i) => (
                 <button
                   key={i}
-                  onClick={() => setAiQuestion(suggestion)}
+                  onClick={() => {
+                    setAiQuestion(suggestion)
+                    handleAskQuestion()
+                  }}
                   style={{
                     padding: "4px 10px",
                     borderRadius: "12px",
