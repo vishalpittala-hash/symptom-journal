@@ -106,6 +106,7 @@ export default function SymptomForm({ onSave, loading }: SymptomFormProps) {
   const [expandedSections, setExpandedSections] = useState<Record<number, boolean>>({})
   const conversationStartRef = React.useRef<HTMLDivElement>(null)
   const aiInsightsRef = React.useRef<HTMLDivElement>(null)
+  const [isNewAnalysis, setIsNewAnalysis] = useState(false)
 
   // Persist conversation to localStorage
   useEffect(() => {
@@ -124,14 +125,17 @@ export default function SymptomForm({ onSave, loading }: SymptomFormProps) {
   useEffect(() => {
     if (aiAnalysis) {
       localStorage.setItem('symptomAnalysis', aiAnalysis)
-      // Auto-scroll to AI insights section when analysis is generated
-      setTimeout(() => {
-        if (aiInsightsRef.current) {
-          aiInsightsRef.current.scrollIntoView({ behavior: 'smooth' })
-        }
-      }, 100)
+      // Auto-scroll to AI insights section only when it's a new analysis (not on page load)
+      if (isNewAnalysis) {
+        setTimeout(() => {
+          if (aiInsightsRef.current) {
+            aiInsightsRef.current.scrollIntoView({ behavior: 'smooth' })
+          }
+          setIsNewAnalysis(false)
+        }, 100)
+      }
     }
-  }, [aiAnalysis])
+  }, [aiAnalysis, isNewAnalysis])
 
   // Load conversation and context from localStorage on mount
   useEffect(() => {
@@ -354,6 +358,7 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
     if (!symptom.trim() || !severity) return
     
     setIsAnalyzing(true)
+    setIsNewAnalysis(true)
     setAiAnalysis("")
     
     try {
