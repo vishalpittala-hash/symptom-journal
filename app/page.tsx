@@ -738,8 +738,8 @@ export default function Home() {
             </div>
             <button
               onClick={() => {
+                // Keep user ID to preserve data access, but clear profile and temporary data
                 localStorage.removeItem("symptomProfile")
-                localStorage.removeItem("symptomUserId")
                 localStorage.removeItem("symptomConversation")
                 localStorage.removeItem("symptomAnalysis")
                 localStorage.removeItem("symptomContext")
