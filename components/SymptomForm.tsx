@@ -991,16 +991,19 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
 
         {/* Structured UI blocks */}
         {aiAnalysis && parseAIAnalysis(aiAnalysis).map((section, index) => {
+          const isProfileSection = section.title.includes("Based on Your Profile")
           const isExpanded = expandedSections[index] ?? false
-          const displayContent = isExpanded ? section.content : section.content.slice(0, 3)
-          const hasMore = section.content.length > 3
+          
+          // Always show full content for profile section, limit others to 3 items
+          const displayContent = isProfileSection ? section.content : (isExpanded ? section.content : section.content.slice(0, 3))
+          const hasMore = !isProfileSection && section.content.length > 3
 
           return (
             <div key={index} style={{
               padding: "12px",
               borderRadius: "8px",
-              background: "rgba(13, 148, 136, 0.1)",
-              border: "1px solid rgba(45, 212, 191, 0.3)",
+              background: isProfileSection ? "rgba(59, 130, 246, 0.1)" : "rgba(13, 148, 136, 0.1)",
+              border: isProfileSection ? "1px solid rgba(59, 130, 246, 0.3)" : "1px solid rgba(45, 212, 191, 0.3)",
               marginBottom: "8px",
               color: "#e2e8f0",
               fontSize: "14px"
@@ -1008,7 +1011,7 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
               <div style={{ 
                 fontSize: "13px", 
                 fontWeight: 600, 
-                color: "#2dd4bf", 
+                color: isProfileSection ? "#3b82f6" : "#2dd4bf", 
                 marginBottom: "8px",
                 display: "flex",
                 alignItems: "center",
@@ -1021,7 +1024,7 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
                 <div key={itemIndex} style={{
                   padding: "4px 0",
                   paddingLeft: "12px",
-                  borderLeft: "2px solid rgba(45, 212, 191, 0.3)",
+                  borderLeft: `2px solid ${isProfileSection ? "rgba(59, 130, 246, 0.3)" : "rgba(45, 212, 191, 0.3)"}`,
                   lineHeight: "1.4",
                   fontSize: "13px"
                 }}>

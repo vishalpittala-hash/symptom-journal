@@ -131,7 +131,7 @@ export async function POST(req: Request) {
       if (userProfile.activityLevel) parts.push(`Activity level: ${userProfile.activityLevel}`)
       if (parts.length > 0) {
         profileContext = `Patient profile: ${parts.join(", ")}. `
-        profileSummary = `**👤 Based on Your Profile:**\n• Age: ${userProfile.age}\n• Gender: ${userProfile.gender}\n• Conditions: ${userProfile.conditions || 'None'}\n• Activity Level: ${userProfile.activityLevel}\n\n`
+        profileSummary = `**👤 Based on Your Profile:** Age ${userProfile.age}, ${userProfile.gender}, activity level: ${userProfile.activityLevel}\n\n`
       }
     }
 
@@ -256,10 +256,10 @@ To help you better: Where exactly is the pain? What type of pain is it?`
       }
       // Check for headache
       else if (symptomText.includes('headache') || symptomText.includes('migraine')) {
-        let possibleCause = "Headaches can be tension-type, migraine, cluster, or related to other causes"
-        let whatToDo = "Rest in quiet, dark room, stay hydrated, apply cold compress, try relaxation techniques"
-        let whenToWorry = "Sudden severe headache (thunderclap), headache with fever and stiff neck, headache after head injury, worsening pattern"
-        
+        let possibleCause = "Headaches can be tension-type, migraine, or stress-related"
+        let whatToDo = "Rest, stay hydrated, apply cold compress, try relaxation techniques"
+        let whenToWorry = "Sudden severe headache, vision changes, numbness, or confusion"
+
         // Add profile-specific context
         if (userProfile?.conditions?.toLowerCase().includes('migraine')) {
           possibleCause = "Likely migraine episode given your history"
@@ -268,27 +268,15 @@ To help you better: Where exactly is the pain? What type of pain is it?`
         if (userProfile?.stressLevel) {
           possibleCause += ". Stress can be a major trigger"
         }
-        
+
         mockAnalysis = profileSummary + `🧠 **Possible Cause**
 • ${possibleCause}
-• Dehydration or skipped meals
-• Eye strain or poor posture
-• Sleep issues
-• Environmental triggers
 
 💊 **What you can do**
 • ${whatToDo}
-• Over-the-counter pain relief if appropriate
-• Identify and avoid triggers
-• Maintain regular sleep schedule
-• Stay hydrated
 
 ⚠️ **When to worry**
 • ${whenToWorry}
-• Vision changes with headache
-• Numbness or weakness
-• Confusion or difficulty speaking
-• Headache that doesn't respond to usual treatment
 
 To understand yours better: How long have you had this? Is it on one side or both?`
         questions.push("How long have you had this?")
