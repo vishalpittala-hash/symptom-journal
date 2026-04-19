@@ -90,11 +90,21 @@ export default function Home() {
   }
 
   useEffect(() => {
+    // Generate or retrieve unique user ID
+    let userId = localStorage.getItem("symptomUserId")
+    if (!userId) {
+      userId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+      localStorage.setItem("symptomUserId", userId)
+    }
+
     const profile = JSON.parse(localStorage.getItem("symptomProfile") || "{}")
     if (profile.email) {
       setUserEmail(profile.email)
       setName(profile.name)
       setNameSet(true)
+    } else {
+      // Use unique user ID as default email
+      setUserEmail(userId)
     }
     setLoading(false)
     fetchData()

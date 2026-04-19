@@ -214,6 +214,10 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
     if (!symptom.trim()) return
     if (!severity) return
 
+    const profile = JSON.parse(localStorage.getItem("symptomProfile") || "{}")
+    const userId = localStorage.getItem("symptomUserId") || `user_${Date.now()}`
+    const userEmail = profile.email || userId
+
     const entryData = {
       symptom: symptom.trim(),
       severity: severity === "Mild" ? 1 : severity === "Moderate" ? 3 : 5,
@@ -223,6 +227,7 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
       stressLevel: stressLevel ? parseInt(stressLevel) : undefined,
       weather: weather || undefined,
       medications: medications ? medications.split(',').map(m => m.trim()) : undefined,
+      userEmail,
       aiDiscussion: messages.length > 0 ? messages : undefined
     }
 
