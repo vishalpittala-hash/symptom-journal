@@ -154,25 +154,25 @@ export async function POST(req: Request) {
       if (symptomText.includes('pregnant') || symptomText.includes('pregnancy') || symptomText.includes('pregnent') || symptomText.includes('pregnat') || symptomText.includes('pregnency') || symptomText.includes('expecting')) {
         console.log("✓ MATCHED PREGNANCY KEYWORD")
         mockAnalysis = profileSummary + `🧠 **Possible Cause**
-• Pregnancy-related nausea (morning sickness)
-• Very common in first trimester
-• Hormonal changes during pregnancy
+• **Pregnancy-related nausea** (morning sickness)
+• Very common in **first trimester**
+• **Hormonal changes** during pregnancy
 • May occur at any time of day
 
 💊 **What you can do**
-• Eat small, frequent meals throughout the day
-• Avoid strong odors and triggers
-• Stay hydrated with small sips
+• Eat **small, frequent meals** throughout the day
+• Avoid **strong odors** and triggers
+• Stay **hydrated** with small sips
 • Rest when needed
-• Try ginger or peppermint tea
-• Eat crackers before getting out of bed
+• Try **ginger** or **peppermint tea**
+• Eat **crackers** before getting out of bed
 
 ⚠️ **When to worry**
-• Severe vomiting preventing fluid intake
-• Weight loss during pregnancy
-• Dizziness or fainting
+• **Severe vomiting** preventing fluid intake
+• **Weight loss** during pregnancy
+• **Dizziness** or fainting
 • Symptoms persist beyond first trimester
-• Fever accompanies nausea
+• **Fever** accompanies nausea
 
 To help you better: How many weeks pregnant are you? When did the nausea start? Does anything make it better or worse?`
         questions.push("How many weeks pregnant are you?")
@@ -181,35 +181,35 @@ To help you better: How many weeks pregnant are you? When did the nausea start? 
       }
       // Check for nausea
       else if (symptomText.includes('nausea') || symptomText.includes('vomit') || symptomText.includes('dizzy')) {
-        let possibleCause = "Nausea can have various causes including food poisoning, viral infection, medication side effects, migraines, or stress"
-        let whatToDo = "Stay hydrated with small sips, rest, avoid strong odors, eat bland foods, monitor for 24-48 hours"
-        let whenToWorry = "Persistent vomiting beyond 24 hours, signs of dehydration, severe abdominal pain, blood in vomit, fever above 101°F"
-        
+        let possibleCause = "Nausea can have various causes including **food poisoning**, **viral infection**, **medication side effects**, **migraines**, or **stress**"
+        let whatToDo = "Stay **hydrated** with small sips, rest, avoid strong odors, eat **bland foods**, monitor for 24-48 hours"
+        let whenToWorry = "Persistent vomiting beyond 24 hours, signs of **dehydration**, severe **abdominal pain**, **blood in vomit**, fever above 101°F"
+
         // Add profile-specific context
         if (userProfile?.conditions?.toLowerCase().includes('migraine')) {
-          possibleCause = "Could be migraine-related nausea given your history"
+          possibleCause = "Could be **migraine-related nausea** given your history"
           whatToDo += ", consider migraine medication if prescribed"
         }
         if (userProfile?.conditions?.toLowerCase().includes('asthma')) {
-          possibleCause = "Could be medication side effect given asthma history"
+          possibleCause = "Could be **medication side effect** given asthma history"
         }
-        
+
         mockAnalysis = profileSummary + `🧠 **Possible Cause**
 • ${possibleCause}
-• Digestive upset or infection
-• Stress or anxiety
-• Motion sickness
+• **Digestive upset** or infection
+• **Stress** or anxiety
+• **Motion sickness**
 
 💊 **What you can do**
 • ${whatToDo}
 • Avoid solid foods temporarily
-• Try ginger or peppermint
+• Try **ginger** or **peppermint**
 • Rest in a quiet, dark room
 
 ⚠️ **When to worry**
 • ${whenToWorry}
-• Severe headache accompanies nausea
-• Confusion or difficulty speaking
+• **Severe headache** accompanies nausea
+• **Confusion** or difficulty speaking
 • Symptoms worsen despite home care
 
 To help identify the cause: How long have you been experiencing this? Does it happen at specific times?`
@@ -219,34 +219,34 @@ To help identify the cause: How long have you been experiencing this? Does it ha
       }
       // Check for back pain
       else if (symptomText.includes('back') && symptomText.includes('pain')) {
-        let possibleCause = "Back pain can stem from muscle strain, poor posture, injury, or age-related changes"
-        let whatToDo = "Rest, gentle stretching, apply heat or cold, maintain good posture, avoid heavy lifting"
-        let whenToWorry = "Pain radiates down legs, numbness or weakness, loss of bladder/bowel control, fever with back pain, severe pain that doesn't improve"
-        
+        let possibleCause = "Back pain can stem from **muscle strain**, **poor posture**, **injury**, or **age-related changes**"
+        let whatToDo = "Rest, **gentle stretching**, apply **heat or cold**, maintain good posture, avoid **heavy lifting**"
+        let whenToWorry = "Pain radiates down legs, **numbness** or weakness, loss of **bladder/bowel control**, fever with back pain, severe pain that doesn't improve"
+
         // Add profile-specific context
         if (userProfile?.activityLevel === 'high' || userProfile?.activityLevel === 'medium') {
-          possibleCause = "Could be exercise-related muscle strain given your activity level"
+          possibleCause = "Could be **exercise-related muscle strain** given your activity level"
         }
         if (userProfile?.age && userProfile.age > 40) {
-          possibleCause += ". At your age, consider degenerative changes"
+          possibleCause += ". At your age, consider **degenerative changes**"
         }
-        
+
         mockAnalysis = profileSummary + `🧠 **Possible Cause**
 • ${possibleCause}
-• Poor posture or ergonomics
-• Stress or tension
+• **Poor posture** or ergonomics
+• **Stress** or tension
 • Underlying medical conditions
 
 💊 **What you can do**
 • ${whatToDo}
-• Over-the-counter pain relief if appropriate
-• Gentle yoga or stretching
-• Consider ergonomic adjustments
+• **Over-the-counter pain relief** if appropriate
+• **Gentle yoga** or stretching
+• Consider **ergonomic adjustments**
 
 ⚠️ **When to worry**
 • ${whenToWorry}
 • Pain after injury or fall
-• Unexplained weight loss with pain
+• **Unexplained weight loss** with pain
 • Pain that worsens at night
 
 To help you better: Where exactly is the pain? What type of pain is it?`
@@ -256,17 +256,17 @@ To help you better: Where exactly is the pain? What type of pain is it?`
       }
       // Check for headache
       else if (symptomText.includes('headache') || symptomText.includes('migraine')) {
-        let possibleCause = "Headaches can be tension-type, migraine, or stress-related"
-        let whatToDo = "Rest, stay hydrated, apply cold compress, try relaxation techniques"
-        let whenToWorry = "Sudden severe headache, vision changes, numbness, or confusion"
+        let possibleCause = "Headaches can be **tension-type**, **migraine**, or **stress-related**"
+        let whatToDo = "Rest, stay **hydrated**, apply **cold compress**, try **relaxation techniques**"
+        let whenToWorry = "**Sudden severe headache**, **vision changes**, **numbness**, or **confusion**"
 
         // Add profile-specific context
         if (userProfile?.conditions?.toLowerCase().includes('migraine')) {
-          possibleCause = "Likely migraine episode given your history"
+          possibleCause = "Likely **migraine episode** given your history"
           whatToDo += ", take prescribed migraine medication"
         }
         if (userProfile?.stressLevel) {
-          possibleCause += ". Stress can be a major trigger"
+          possibleCause += ". **Stress** can be a major trigger"
         }
 
         mockAnalysis = profileSummary + `🧠 **Possible Cause**
@@ -285,18 +285,18 @@ To understand yours better: How long have you had this? Is it on one side or bot
       }
       // Check for workout-related pain
       else if (symptomText.includes('workout') || symptomText.includes('exercise') || symptomText.includes('gym')) {
-        let possibleCause = "Workout-related pain from muscle strain, improper form, or overexertion"
-        let whatToDo = "Rest the affected area, apply ice, gentle stretching, proper warm-up next time, stay hydrated"
-        let whenToWorry = "Severe pain that doesn't improve with rest, swelling that doesn't go down, inability to move the area, pain during normal activities"
-        
+        let possibleCause = "Workout-related pain from **muscle strain**, **improper form**, or **overexertion**"
+        let whatToDo = "Rest the affected area, apply **ice**, **gentle stretching**, proper warm-up next time, stay **hydrated**"
+        let whenToWorry = "Severe pain that doesn't improve with rest, **swelling** that doesn't go down, inability to move the area, pain during normal activities"
+
         // Add profile-specific context
         if (userProfile?.activityLevel === 'low') {
           possibleCause = "Body may need more time to adapt to exercise given low activity level"
         }
-        
+
         mockAnalysis = profileSummary + `🧠 **Possible Cause**
 • ${possibleCause}
-• Muscle soreness (DOMS)
+• **Muscle soreness** (DOMS)
 • Minor injury or strain
 • Improper exercise technique
 
@@ -308,7 +308,7 @@ To understand yours better: How long have you had this? Is it on one side or bot
 
 ⚠️ **When to worry**
 • ${whenToWorry}
-• Sharp pain during exercise
+• **Sharp pain** during exercise
 • Pain that persists for more than a week
 • Visible swelling or bruising
 
@@ -319,20 +319,20 @@ To help you better: What type of exercise were you doing? How long ago was the w
       }
       // Generic fallback with profile context
       else {
-        let possibleCause = `Symptom "${text.substring(0, 30)}..." could have various causes including environmental factors, stress, or underlying conditions`
-        let whatToDo = "Monitor symptoms, rest, stay hydrated, track patterns, avoid known triggers"
-        let whenToWorry = "Symptoms persist beyond 48 hours, severity increases significantly, new symptoms develop, fever above 101°F"
-        
+        let possibleCause = `Symptom "${text.substring(0, 30)}..." could have various causes including **environmental factors**, **stress**, or underlying conditions`
+        let whatToDo = "Monitor symptoms, rest, stay **hydrated**, track patterns, avoid known triggers"
+        let whenToWorry = "Symptoms persist beyond 48 hours, severity increases significantly, new symptoms develop, **fever** above 101°F"
+
         // Add profile-specific context for generic symptoms
         if (userProfile?.conditions) {
           possibleCause += `. Could be related to pre-existing conditions (${userProfile.conditions})`
         }
-        
+
         mockAnalysis = profileSummary + `🧠 **Possible Cause**
 • ${possibleCause}
 • Lifestyle factors
 • Environmental triggers
-• Stress or fatigue
+• **Stress** or fatigue
 
 💊 **What you can do**
 • ${whatToDo}
@@ -342,7 +342,7 @@ To help you better: What type of exercise were you doing? How long ago was the w
 
 ⚠️ **When to worry**
 • ${whenToWorry}
-• Difficulty breathing or chest pain
+• Difficulty breathing or **chest pain**
 • Severe pain interfering with daily activities
 • Sudden, severe symptoms
 
