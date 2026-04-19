@@ -701,7 +701,7 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...entry,
-          userEmail: "user@local.dev"
+          userEmail
         }),
       })
       showToast("Entry saved ✓")
