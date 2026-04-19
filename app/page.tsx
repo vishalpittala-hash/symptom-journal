@@ -733,6 +733,12 @@ export default function Home() {
             <button
               onClick={() => {
                 localStorage.removeItem("symptomProfile")
+                localStorage.removeItem("symptomUserId")
+                localStorage.removeItem("symptomConversation")
+                localStorage.removeItem("symptomAnalysis")
+                localStorage.removeItem("symptomContext")
+                localStorage.removeItem("followUpMessage")
+                localStorage.removeItem("currentEntryId")
                 window.location.reload()
               }}
               style={{
