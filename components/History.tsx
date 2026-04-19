@@ -14,6 +14,7 @@ const BODY_PARTS: BodyPart[] = [
   { id: "head",    label: "Head",    icon: "🧠" },
   { id: "chest",   label: "Chest",   icon: "🫁" },
   { id: "stomach", label: "Stomach", icon: "🫃" },
+  { id: "back",    label: "Back",    icon: "🫄" },
   { id: "limbs",   label: "Limbs",   icon: "🦵" },
   { id: "skin",    label: "Skin",    icon: "🩹" },
   { id: "general", label: "General", icon: "🌡️" },
@@ -23,6 +24,7 @@ const FILTER_OPTIONS = [
   { id: "all", label: "All" },
   { id: "head", label: "Head" },
   { id: "chest", label: "Chest" },
+  { id: "back", label: "Back" },
   { id: "limbs", label: "Limbs" },
 ]
 

@@ -20,7 +20,7 @@ const BODY_PARTS: BodyPart[] = [
   { id: "head",    label: "Head",    icon: "🧠" },
   { id: "chest",   label: "Chest",   icon: "🫁" },
   { id: "stomach", label: "Stomach", icon: "🫃" },
-  { id: "back",    label: "Back",    icon: "🔙" },
+  { id: "back",    label: "Back",    icon: "🫄" },
   { id: "limbs",   label: "Limbs",   icon: "🦵" },
   { id: "skin",    label: "Skin",    icon: "🩹" },
   { id: "general", label: "General", icon: "🌡️" },
@@ -35,7 +35,7 @@ const SEVERITY_COLORS: Record<string, string> = {
 const QUICK_LOG_SYMPTOMS = [
   { symptom: "Headache", bodyPart: "head", severity: "Moderate", icon: "🤕" },
   { symptom: "Stomach pain", bodyPart: "stomach", severity: "Mild", icon: "🫃" },
-  { symptom: "Back pain", bodyPart: "back", severity: "Moderate", icon: "🔙" },
+  { symptom: "Back pain", bodyPart: "back", severity: "Moderate", icon: "🫄" },
   { symptom: "Fatigue", bodyPart: "general", severity: "Mild", icon: "😴" },
   { symptom: "Nausea", bodyPart: "general", severity: "Mild", icon: "🤢" },
   { symptom: "Fever", bodyPart: "general", severity: "Moderate", icon: "🌡️" },
