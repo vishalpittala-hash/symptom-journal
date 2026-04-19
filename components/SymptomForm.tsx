@@ -104,7 +104,8 @@ export default function SymptomForm({ onSave, loading }: SymptomFormProps) {
   const [profileLoaded, setProfileLoaded] = useState(false)
   const [currentSymptomContext, setCurrentSymptomContext] = useState<any>(null)
   const [expandedSections, setExpandedSections] = useState<Record<number, boolean>>({})
-  const conversationEndRef = React.useRef<HTMLDivElement>(null)
+  const conversationStartRef = React.useRef<HTMLDivElement>(null)
+  const aiInsightsRef = React.useRef<HTMLDivElement>(null)
 
   // Persist conversation to localStorage
   useEffect(() => {
@@ -113,16 +114,22 @@ export default function SymptomForm({ onSave, loading }: SymptomFormProps) {
     }
   }, [messages])
 
-  // Auto-scroll to conversation end when messages change
+  // Auto-scroll to conversation start when messages change
   useEffect(() => {
-    if (conversationEndRef.current) {
-      conversationEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    if (conversationStartRef.current) {
+      conversationStartRef.current.scrollIntoView({ behavior: 'smooth' })
     }
   }, [messages])
 
   useEffect(() => {
     if (aiAnalysis) {
       localStorage.setItem('symptomAnalysis', aiAnalysis)
+      // Auto-scroll to AI insights section when analysis is generated
+      setTimeout(() => {
+        if (aiInsightsRef.current) {
+          aiInsightsRef.current.scrollIntoView({ behavior: 'smooth' })
+        }
+      }, 100)
     }
   }, [aiAnalysis])
 
@@ -1002,6 +1009,7 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
         )}
 
         {/* Structured UI blocks */}
+        <div ref={aiInsightsRef}>
         {aiAnalysis && parseAIAnalysis(aiAnalysis).map((section, index) => {
           const isProfileSection = section.title.includes("Based on Your Profile")
           const isExpanded = expandedSections[index] ?? false
@@ -1063,6 +1071,7 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
             </div>
           )
         })}
+        </div>
 
         {/* Q&A Section */}
         <div style={{ marginTop: "16px" }}>
@@ -1102,7 +1111,7 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
                   </div>
                 </div>
               ))}
-              <div ref={conversationEndRef} />
+              <div ref={conversationStartRef} />
             </div>
           )}
 
