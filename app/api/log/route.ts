@@ -38,8 +38,15 @@ export async function POST(req: Request) {
       )
     }
 
-    // Use default user email if not provided
-    const userEmailToUse = userEmail || "user@local.dev"
+    // Require user email for data isolation
+    if (!userEmail) {
+      return NextResponse.json(
+        { error: "Missing user email - required for data isolation" },
+        { status: 400 }
+      )
+    }
+
+    const userEmailToUse = userEmail
     console.log("Log API - Using email:", userEmailToUse)
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!

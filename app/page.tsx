@@ -80,7 +80,15 @@ export default function Home() {
     console.log("fetchData called")
     try {
       const profile = JSON.parse(localStorage.getItem("symptomProfile") || "{}")
-      const userEmail = profile.email || "user@local.dev"
+      const userId = localStorage.getItem("symptomUserId")
+      const userEmail = profile.email || userId
+      
+      if (!userEmail) {
+        console.log("No user email or user ID found, returning empty data")
+        setData([])
+        return
+      }
+      
       const res = await fetch(`/api/history?userEmail=${encodeURIComponent(userEmail)}`)
       console.log("History API response status:", res.status)
       const { data } = await res.json()
@@ -111,6 +119,8 @@ export default function Home() {
       // Use unique user ID as default email
       setUserEmail(userId)
       setName("User")
+      // Redirect to user profile if no profile is set up
+      router.push("/user-profile")
     }
     setLoading(false)
     fetchData()
