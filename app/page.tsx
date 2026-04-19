@@ -745,7 +745,10 @@ export default function Home() {
                 localStorage.removeItem("symptomContext")
                 localStorage.removeItem("followUpMessage")
                 localStorage.removeItem("currentEntryId")
-                router.push("/user-profile")
+                // Use hard redirect to ensure fresh state
+                setTimeout(() => {
+                  window.location.href = "/user-profile"
+                }, 100)
               }}
               style={{
                 padding: "8px 16px",
