@@ -100,11 +100,15 @@ export default function Home() {
     const profile = JSON.parse(localStorage.getItem("symptomProfile") || "{}")
     if (profile.email) {
       setUserEmail(profile.email)
-      setName(profile.name)
+      setName(profile.name || "User")
       setNameSet(true)
+    } else if (profile.name) {
+      setName(profile.name)
+      setUserEmail(userId)
     } else {
       // Use unique user ID as default email
       setUserEmail(userId)
+      setName("User")
     }
     setLoading(false)
     fetchData()

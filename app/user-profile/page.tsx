@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 export default function UserProfilePage() {
   const router = useRouter()
 
+  const [name, setName] = useState<string>("")
   const [age, setAge] = useState<string>("")
   const [gender, setGender] = useState<string>("")
   const [conditions, setConditions] = useState<string>("")
@@ -18,6 +19,7 @@ export default function UserProfilePage() {
     const savedProfile = localStorage.getItem('symptomProfile')
     if (savedProfile) {
       const profile = JSON.parse(savedProfile)
+      if (profile.name) setName(profile.name)
       if (profile.age) setAge(profile.age.toString())
       if (profile.gender) setGender(profile.gender)
       if (profile.conditions) setConditions(profile.conditions)
@@ -26,7 +28,7 @@ export default function UserProfilePage() {
   }, [])
 
   const handleSave = async () => {
-    if (!age || !gender || !activityLevel) {
+    if (!name || !age || !gender || !activityLevel) {
       alert("Please fill required fields")
       return
     }
@@ -35,6 +37,7 @@ export default function UserProfilePage() {
 
     // Save profile to localStorage
     const profile = {
+      name,
       age: Number(age),
       gender,
       conditions: conditions && conditions.toLowerCase() !== 'no' ? conditions : '',
@@ -72,6 +75,19 @@ export default function UserProfilePage() {
         {/* Inputs */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
+          <div>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>Name *</label>
+            <input
+              type="text"
+              placeholder="Enter your name"
+              value={name}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setName(e.target.value)
+              }
+              style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #d1d5db', borderRadius: '0.75rem', outline: 'none', fontSize: '1rem', color: '#111827' }}
+            />
+          </div>
+
           <div>
             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>Age *</label>
             <input
