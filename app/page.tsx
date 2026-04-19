@@ -77,7 +77,9 @@ export default function Home() {
   const fetchData = async () => {
     console.log("fetchData called")
     try {
-      const res = await fetch("/api/history")
+      const profile = JSON.parse(localStorage.getItem("symptomProfile") || "{}")
+      const userEmail = profile.email || "user@local.dev"
+      const res = await fetch(`/api/history?userEmail=${encodeURIComponent(userEmail)}`)
       console.log("History API response status:", res.status)
       const { data } = await res.json()
       console.log("History API data:", data)

@@ -14,14 +14,20 @@ export async function GET(req: Request) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-    // Use axiosInstance instead of fetch
+    // Get user email from query params or use default for testing
+    const { searchParams } = new URL(req.url)
+    const userEmail = searchParams.get('userEmail') || "user@local.dev"
+    console.log("Insights API - Filtering by user email:", userEmail)
+
+    // Use axiosInstance instead of fetch with user email filter
     const response = await axiosInstance.get(
       `${supabaseUrl}/rest/v1/symptoms`,
       {
         params: {
           select: '*',
           order: 'created_at.desc',
-          limit: 50
+          limit: 50,
+          'user_email': `eq.${userEmail}`
         },
         headers: {
           'apikey': supabaseKey,
