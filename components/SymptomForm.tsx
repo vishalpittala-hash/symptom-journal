@@ -107,6 +107,7 @@ export default function SymptomForm({ onSave, loading }: SymptomFormProps) {
   const conversationStartRef = React.useRef<HTMLDivElement>(null)
   const aiInsightsRef = React.useRef<HTMLDivElement>(null)
   const [isNewAnalysis, setIsNewAnalysis] = useState(false)
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
 
   // Persist conversation to localStorage
   useEffect(() => {
@@ -115,12 +116,12 @@ export default function SymptomForm({ onSave, loading }: SymptomFormProps) {
     }
   }, [messages])
 
-  // Auto-scroll to conversation start when messages change
+  // Auto-scroll to conversation start when messages change (not on initial load)
   useEffect(() => {
-    if (conversationStartRef.current) {
+    if (!isInitialLoad && conversationStartRef.current) {
       conversationStartRef.current.scrollIntoView({ behavior: 'smooth' })
     }
-  }, [messages])
+  }, [messages, isInitialLoad])
 
   useEffect(() => {
     if (aiAnalysis) {
@@ -173,48 +174,40 @@ export default function SymptomForm({ onSave, loading }: SymptomFormProps) {
     
     // Load symptom context if available (from history continue chat)
     if (savedContext) {
-      const context = JSON.parse(savedContext)
-      if (context.symptom) setSymptom(context.symptom)
-      if (context.severity) {
-        setSeverity(context.severity === 1 ? 'Mild' : context.severity === 3 ? 'Moderate' : 'Severe')
-      }
-      if (context.bodyPart) setBodyPart(context.bodyPart)
-      if (context.notes) setNotes(context.notes)
-      if (context.sleepHours) setSleepHours(context.sleepHours.toString())
-      if (context.stressLevel) setStressLevel(context.stressLevel.toString())
-      if (context.weather) setWeather(context.weather)
-      if (context.medications) setMedications(context.medications.join(', '))
-      
-      // Clear the context after loading so it doesn't persist on next mount
-      localStorage.removeItem('symptomContext')
-      
-      // Generate analysis from the loaded context
-      if (context.symptom && context.severity) {
-        const severityLabel = context.severity === 1 ? 'Mild' : context.severity === 3 ? 'Moderate' : 'Severe'
-        setAiAnalysis(`🧠 **Possible Cause**
+      try {
+        const context = JSON.parse(savedContext)
+        if (context.symptom) setSymptom(context.symptom)
+        if (context.severity) {
+          const severityLabel = context.severity === 1 ? 'Mild' : context.severity === 3 ? 'Moderate' : 'Severe'
+          setSeverity(severityLabel)
+        }
+        if (context.bodyPart) setBodyPart(context.bodyPart)
+        if (context.notes) setNotes(context.notes)
+        if (context.sleepHours) setSleepHours(context.sleepHours.toString())
+        if (context.stressLevel) setStressLevel(context.stressLevel.toString())
+        if (context.weather) setWeather(context.weather)
+        if (context.medications) setMedications(context.medications.join(', '))
+        
+        // Clear the context after loading so it doesn't persist on next mount
+        localStorage.removeItem('symptomContext')
+        
+        // Generate analysis from the loaded context
+        if (context.symptom && context.severity) {
+          const severityLabel = context.severity === 1 ? 'Mild' : context.severity === 3 ? 'Moderate' : 'Severe'
+          setAiAnalysis(`🧠 **Possible Cause**
 • ${context.symptom} detected
 • ${severityLabel} intensity - ${context.severity >= 4 ? 'may require medical attention' : 'monitor for changes'}
 ${context.bodyPart ? `• Affected area: ${context.bodyPart} region` : ''}
 ${context.sleepHours ? `• Sleep: ${context.sleepHours} hours - ${parseFloat(context.sleepHours) < 6 ? 'may contribute to symptoms' : 'adequate rest'}` : ''}
 ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.stressLevel >= 4 ? 'may worsen symptoms' : 'manageable levels'}` : ''}
-
-💊 **What you can do**
-• Rest and stay hydrated
-• Monitor symptoms for 24-48 hours
-• Track patterns and triggers
-• Consider over-the-counter relief if appropriate
-• Maintain regular sleep schedule
-• Practice stress management techniques
-
-⚠️ **When to worry**
-• Symptoms persist beyond 48 hours
-• Severity increases significantly
-• New symptoms develop
-• ${context.severity >= 4 ? 'Immediate medical attention recommended' : 'Fever above 101°F develops'}
+${context.severity >= 4 ? 'Immediate medical attention recommended' : 'Fever above 101°F develops'}
 • Difficulty breathing or chest pain occurs
 • Severe pain that interferes with daily activities
 
 💬 You can ask follow-up questions about this symptom below.`)
+        }
+      } catch (error) {
+        console.error("Error loading context:", error)
       }
     }
     
@@ -228,6 +221,9 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
       }])
       localStorage.removeItem('followUpMessage')
     }
+    
+    // Mark initial load as complete after all data is loaded
+    setIsInitialLoad(false)
   }, [])
 
   const handleSave = async () => {
