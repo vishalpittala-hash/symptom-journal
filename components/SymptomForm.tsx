@@ -101,6 +101,7 @@ export default function SymptomForm({ onSave, loading }: SymptomFormProps) {
   const [showSuccess, setShowSuccess] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [profileLoaded, setProfileLoaded] = useState(false)
+  const [currentSymptomContext, setCurrentSymptomContext] = useState<any>(null)
 
   // Persist conversation to localStorage
   useEffect(() => {
@@ -348,6 +349,17 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
       const analysis = data.analysis || generateLocalAnalysis()
       setAiAnalysis(analysis)
       
+      // Store symptom context for follow-up questions
+      setCurrentSymptomContext({
+        symptom,
+        severity: severity === 'Mild' ? 1 : severity === 'Moderate' ? 3 : 5,
+        bodyPart,
+        notes,
+        sleepHours: sleepHours ? parseFloat(sleepHours) : undefined,
+        stressLevel: stressLevel ? parseInt(stressLevel) : undefined,
+        weather
+      })
+      
       // Auto-save after successful analysis
       await handleSave()
       
@@ -403,8 +415,8 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
     setMessages(updatedMessages)
 
     try {
-      // Build current symptom context from form state
-      const currentSymptomContext = symptom || severity || bodyPart ? {
+      // Use stored symptom context from initial analysis
+      const contextToUse = currentSymptomContext || (symptom || severity || bodyPart ? {
         symptom,
         severity: severity === 'Mild' ? 1 : severity === 'Moderate' ? 3 : 5,
         bodyPart,
@@ -412,9 +424,10 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
         sleepHours: sleepHours ? parseFloat(sleepHours) : undefined,
         stressLevel: stressLevel ? parseInt(stressLevel) : undefined,
         weather
-      } : null
+      } : null)
 
-      console.log("Sending to API with symptom context:", currentSymptomContext)
+      console.log("Sending to API with symptom context:", contextToUse)
+      console.log("Stored context:", currentSymptomContext)
       console.log("Current form state:", { symptom, severity, bodyPart })
 
       const res = await fetch("/api/analyze", {
@@ -425,7 +438,7 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
           context: "followup_question",
           conversation: messages,
           userProfile: userProfile,
-          symptomContext: currentSymptomContext
+          symptomContext: contextToUse
         })
       })
 

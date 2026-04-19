@@ -30,7 +30,8 @@ export async function POST(req: Request) {
 
     console.log("Log API - Received data:", body)
 
-    if (!symptom || !severity) {
+    // If ID is provided, allow updates without requiring symptom/severity (for AI discussion updates)
+    if (!id && (!symptom || !severity)) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
