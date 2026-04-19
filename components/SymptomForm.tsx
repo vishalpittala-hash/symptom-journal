@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { HealthEntry, Toast, BodyPart, Message } from "../lib/types"
 import { getCurrentWeather, getWeatherEmoji } from "../lib/weather"
 
@@ -20,6 +20,7 @@ const BODY_PARTS: BodyPart[] = [
   { id: "head",    label: "Head",    icon: "🧠" },
   { id: "chest",   label: "Chest",   icon: "🫁" },
   { id: "stomach", label: "Stomach", icon: "🫃" },
+  { id: "back",    label: "Back",    icon: "🔙" },
   { id: "limbs",   label: "Limbs",   icon: "🦵" },
   { id: "skin",    label: "Skin",    icon: "🩹" },
   { id: "general", label: "General", icon: "🌡️" },
@@ -34,7 +35,7 @@ const SEVERITY_COLORS: Record<string, string> = {
 const QUICK_LOG_SYMPTOMS = [
   { symptom: "Headache", bodyPart: "head", severity: "Moderate", icon: "🤕" },
   { symptom: "Stomach pain", bodyPart: "stomach", severity: "Mild", icon: "🫃" },
-  { symptom: "Back pain", bodyPart: "limbs", severity: "Moderate", icon: "🦵" },
+  { symptom: "Back pain", bodyPart: "back", severity: "Moderate", icon: "🔙" },
   { symptom: "Fatigue", bodyPart: "general", severity: "Mild", icon: "😴" },
   { symptom: "Nausea", bodyPart: "general", severity: "Mild", icon: "🤢" },
   { symptom: "Fever", bodyPart: "general", severity: "Moderate", icon: "🌡️" },
@@ -103,11 +104,19 @@ export default function SymptomForm({ onSave, loading }: SymptomFormProps) {
   const [profileLoaded, setProfileLoaded] = useState(false)
   const [currentSymptomContext, setCurrentSymptomContext] = useState<any>(null)
   const [expandedSections, setExpandedSections] = useState<Record<number, boolean>>({})
+  const conversationEndRef = React.useRef<HTMLDivElement>(null)
 
   // Persist conversation to localStorage
   useEffect(() => {
     if (messages.length > 0) {
       localStorage.setItem('symptomConversation', JSON.stringify(messages))
+    }
+  }, [messages])
+
+  // Auto-scroll to conversation end when messages change
+  useEffect(() => {
+    if (conversationEndRef.current) {
+      conversationEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
   }, [messages])
 
@@ -460,8 +469,11 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
 
       const finalMessages = [...updatedMessages, aiMessage]
       setMessages(finalMessages)
+      
+      // Stop analyzing immediately after AI response is displayed
+      setIsAnalyzing(false)
 
-      // Save the updated conversation to database
+      // Save the updated conversation to database (async, doesn't block UI)
       const currentEntryId = localStorage.getItem('currentEntryId')
       await onSave({
         symptom: symptom.trim(),
@@ -1085,9 +1097,12 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
                   <div style={{ fontSize: "11px", opacity: 0.7, marginBottom: "4px", fontWeight: 600 }}>
                     {msg.sender === 'user' ? '👤 You' : '🤖 AI Assistant'} • {(new Date(msg.timestamp)).toLocaleTimeString()}
                   </div>
-                  <div style={{ lineHeight: "1.5" }}>{msg.text}</div>
+                  <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                    {msg.text}
+                  </div>
                 </div>
               ))}
+              <div ref={conversationEndRef} />
             </div>
           )}
 
