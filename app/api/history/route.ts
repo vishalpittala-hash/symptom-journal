@@ -17,9 +17,15 @@ export async function GET(req: Request) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-    // Get user email from query params or use default for testing
+    // Get user email from query params (required for data isolation)
     const { searchParams } = new URL(req.url)
-    const userEmail = searchParams.get('userEmail') || "user@local.dev"
+    const userEmail = searchParams.get('userEmail')
+    
+    if (!userEmail) {
+      console.log("History API - No user email provided, returning empty data")
+      return NextResponse.json({ data: [] })
+    }
+    
     console.log("History API - Filtering by user email:", userEmail)
 
     // Use axios instead of fetch with user email filter
