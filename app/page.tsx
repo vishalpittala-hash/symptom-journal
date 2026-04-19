@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { createClient } from "@supabase/supabase-js"
 import jsPDF from "jspdf"
 import { HealthEntry, Toast } from "../lib/types"
@@ -12,6 +13,7 @@ import Tabs from "../components/Tabs"
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
 export default function Home() {
+  const router = useRouter()
   const [name, setName] = useState("")
   const [userEmail, setUserEmail] = useState("")
   const [nameSet, setNameSet] = useState(false)
@@ -743,7 +745,7 @@ export default function Home() {
                 localStorage.removeItem("symptomContext")
                 localStorage.removeItem("followUpMessage")
                 localStorage.removeItem("currentEntryId")
-                window.location.reload()
+                router.push("/user-profile")
               }}
               style={{
                 padding: "8px 16px",
