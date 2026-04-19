@@ -102,6 +102,7 @@ export default function SymptomForm({ onSave, loading }: SymptomFormProps) {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [profileLoaded, setProfileLoaded] = useState(false)
   const [currentSymptomContext, setCurrentSymptomContext] = useState<any>(null)
+  const [expandedSections, setExpandedSections] = useState<Record<number, boolean>>({})
 
   // Persist conversation to localStorage
   useEffect(() => {
@@ -984,41 +985,64 @@ ${context.stressLevel ? `• Stress: Level ${context.stressLevel}/5 - ${context.
         )}
 
         {/* Structured UI blocks */}
-        {aiAnalysis && parseAIAnalysis(aiAnalysis).map((section, index) => (
-          <div key={index} style={{
-            padding: "12px",
-            borderRadius: "8px",
-            background: "rgba(13, 148, 136, 0.1)",
-            border: "1px solid rgba(45, 212, 191, 0.3)",
-            marginBottom: "8px",
-            color: "#e2e8f0",
-            fontSize: "14px"
-          }}>
-            <div style={{ 
-              fontSize: "13px", 
-              fontWeight: 600, 
-              color: "#2dd4bf", 
+        {aiAnalysis && parseAIAnalysis(aiAnalysis).map((section, index) => {
+          const isExpanded = expandedSections[index] ?? false
+          const displayContent = isExpanded ? section.content : section.content.slice(0, 3)
+          const hasMore = section.content.length > 3
+
+          return (
+            <div key={index} style={{
+              padding: "12px",
+              borderRadius: "8px",
+              background: "rgba(13, 148, 136, 0.1)",
+              border: "1px solid rgba(45, 212, 191, 0.3)",
               marginBottom: "8px",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px"
+              color: "#e2e8f0",
+              fontSize: "14px"
             }}>
-              <span>{section.icon}</span>
-              <span>{section.title}</span>
-            </div>
-            {section.content.map((item, itemIndex) => (
-              <div key={itemIndex} style={{
-                padding: "6px 0",
-                paddingLeft: "12px",
-                borderLeft: "2px solid rgba(45, 212, 191, 0.3)",
-                lineHeight: "1.5",
-                fontSize: "13px"
+              <div style={{ 
+                fontSize: "13px", 
+                fontWeight: 600, 
+                color: "#2dd4bf", 
+                marginBottom: "8px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px"
               }}>
-                {item}
+                <span>{section.icon}</span>
+                <span>{section.title}</span>
               </div>
-            ))}
-          </div>
-        ))}
+              {displayContent.map((item, itemIndex) => (
+                <div key={itemIndex} style={{
+                  padding: "4px 0",
+                  paddingLeft: "12px",
+                  borderLeft: "2px solid rgba(45, 212, 191, 0.3)",
+                  lineHeight: "1.4",
+                  fontSize: "13px"
+                }}>
+                  {item}
+                </div>
+              ))}
+              {hasMore && (
+                <button
+                  onClick={() => setExpandedSections(prev => ({ ...prev, [index]: !isExpanded }))}
+                  style={{
+                    marginTop: "8px",
+                    padding: "4px 8px",
+                    background: "transparent",
+                    border: "1px solid rgba(45, 212, 191, 0.3)",
+                    color: "#2dd4bf",
+                    fontSize: "12px",
+                    borderRadius: "4px",
+                    cursor: "pointer"
+                  }}
+                >
+                  {isExpanded ? "Show less" : `Show ${section.content.length - 3} more`}
+                </button>
+              )}
+            </div>
+          )
+        })}
 
         {/* Q&A Section */}
         <div style={{ marginTop: "16px" }}>
